@@ -1,0 +1,133 @@
+.card {
+  @apply relative bg-white rounded-2xl p-5 space-y-3 overflow-hidden
+    border border-orange-100/80 shadow-sm
+    hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200;
+}
+
+/* Color accent bar at top */
+.card-accent {
+  @apply absolute top-0 left-0 right-0 h-1 rounded-t-2xl;
+
+  &[data-status='CREATED']         { @apply bg-amber-500; }
+  &[data-status='IN_PROGRESS']     { @apply bg-orange-500; }
+  &[data-status='READY']           { @apply bg-emerald-500; }
+  &[data-status='DELIVERED']       { @apply bg-amber-300; }
+  &[data-status='PAYMENT_PENDING'] { @apply bg-orange-400; }
+  &[data-status='PAID']            { @apply bg-emerald-500; }
+  &[data-status='CANCELLED']       { @apply bg-red-400; }
+}
+
+.card-header {
+  @apply flex items-center justify-between pt-1;
+}
+
+.order-id {
+  @apply font-mono text-xs font-bold text-stone-400;
+}
+
+.time-ago {
+  @apply text-xs text-stone-400 font-medium;
+}
+
+.card-meta {
+  @apply flex items-center gap-2;
+}
+
+.type-badge {
+  @apply text-xs font-bold px-2.5 py-0.5 rounded-full;
+
+  &[data-type='DINE_IN'] {
+    @apply bg-amber-50 text-amber-700 ring-1 ring-amber-200;
+  }
+
+  &[data-type='TAKEAWAY'] {
+    @apply bg-orange-50 text-orange-700 ring-1 ring-orange-200;
+  }
+}
+
+.table-label {
+  @apply text-sm font-bold text-stone-700;
+}
+
+.customer {
+  @apply text-sm text-stone-500;
+}
+
+.total {
+  @apply text-xl font-extrabold text-stone-900;
+}
+
+.payment-method-row {
+  @apply flex items-center gap-2;
+}
+
+.payment-badge {
+  @apply text-sm font-bold px-3 py-1 rounded-full;
+
+  &[data-method='CASH'] {
+    @apply bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200;
+  }
+
+  &[data-method='CARD'] {
+    @apply bg-amber-50 text-amber-700 ring-1 ring-amber-200;
+  }
+}
+
+.waiting-since {
+  @apply text-xs text-orange-600 font-semibold;
+}
+
+.status-badge {
+  @apply inline-flex px-3 py-1 rounded-lg text-xs font-bold;
+
+  &[data-status='CREATED'] {
+    @apply bg-amber-50 text-amber-700 ring-1 ring-amber-200;
+  }
+
+  &[data-status='PAYMENT_PENDING'] {
+    @apply bg-orange-50 text-orange-700 ring-1 ring-orange-200;
+  }
+
+  &[data-status='PAID'] {
+    @apply bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200;
+  }
+
+  &[data-status='IN_PROGRESS'] {
+    @apply bg-orange-50 text-orange-700 ring-1 ring-orange-200;
+  }
+
+  &[data-status='READY'] {
+    @apply bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200;
+  }
+
+  &[data-status='DELIVERED'] {
+    @apply bg-amber-50 text-amber-600 ring-1 ring-amber-200;
+  }
+
+  &[data-status='CANCELLED'] {
+    @apply bg-red-50 text-red-600 ring-1 ring-red-200;
+  }
+}
+
+.actions {
+  @apply flex gap-2 pt-1;
+}
+
+.btn-advance {
+  @apply flex-1 rounded-xl py-2.5 text-sm font-bold text-white
+    transition-all duration-150 shadow-sm hover:shadow-md;
+
+  &[data-status='IN_PROGRESS'] { @apply bg-orange-500 hover:bg-orange-600; }
+  &[data-status='READY']       { @apply bg-emerald-600 hover:bg-emerald-700; }
+  &[data-status='DELIVERED']   { @apply bg-amber-600 hover:bg-amber-700; }
+  &[data-status='PAID']        { @apply bg-emerald-600 hover:bg-emerald-700; }
+
+  &:not([data-status]) {
+    @apply bg-amber-600 hover:bg-amber-700;
+  }
+}
+
+.btn-cancel {
+  @apply rounded-xl border border-red-200 text-red-500 px-4 py-2.5 text-sm font-bold
+    hover:bg-red-50 transition-colors;
+}

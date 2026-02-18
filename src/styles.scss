@@ -1,0 +1,10 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  @apply min-h-screen text-stone-900 antialiased;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: linear-gradient(135deg, #fffbf5 0%, #fef7ed 50%, #fef3e2 100%);
+  background-attachment: fixed;
+}

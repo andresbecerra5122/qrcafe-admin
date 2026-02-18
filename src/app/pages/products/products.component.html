@@ -1,0 +1,73 @@
+<div class="products-page">
+  <!-- Top bar -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <h1 class="logo">{{ restaurantName() || 'QrCafe' }} <span class="logo-accent">Productos</span></h1>
+      <span class="product-count">{{ availableCount }}/{{ totalCount }} disponibles</span>
+    </div>
+    <a class="btn-back"
+       [routerLink]="['/dashboard']"
+       [queryParams]="{ restaurantId: restaurantId }">
+      Volver a Cocina
+    </a>
+  </header>
+
+  <!-- Error -->
+  <div *ngIf="error()" class="error-card">
+    <p>{{ error() }}</p>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading()" class="loading">
+    <div class="loading-icon">&#127860;</div>
+    <p>Cargando productos...</p>
+  </div>
+
+  <!-- Empty -->
+  <div *ngIf="!loading() && !error() && products().length === 0" class="empty">
+    <div class="empty-icon">&#128722;</div>
+    <p class="empty-title">Sin productos</p>
+    <p class="empty-sub">No hay productos registrados.</p>
+  </div>
+
+  <!-- Products by category -->
+  <div *ngIf="!loading() && products().length > 0" class="categories">
+    <section *ngFor="let group of groupedProducts" class="category-section">
+      <h2 class="category-title">{{ group.category }}</h2>
+
+      <div class="product-list">
+        <div *ngFor="let p of group.items"
+             class="product-row"
+             [class.unavailable]="!p.isAvailable">
+
+          <div class="product-thumb"
+               *ngIf="p.imageUrl"
+               [style.backgroundImage]="'url(' + p.imageUrl + ')'">
+          </div>
+          <div class="product-thumb product-thumb--empty" *ngIf="!p.imageUrl">
+            &#127869;
+          </div>
+
+          <div class="product-info">
+            <span class="product-name">{{ p.name }}</span>
+            <span class="product-price">${{ formatPrice(p.price) }}</span>
+          </div>
+
+          <div class="product-toggle">
+            <button
+              class="toggle-switch"
+              [class.toggle-on]="p.isAvailable"
+              [class.toggle-off]="!p.isAvailable"
+              [disabled]="togglingId() === p.id"
+              (click)="toggleAvailability(p)">
+              <span class="toggle-knob"></span>
+            </button>
+            <span class="toggle-label" [class.available]="p.isAvailable">
+              {{ p.isAvailable ? 'Disponible' : 'No disponible' }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>

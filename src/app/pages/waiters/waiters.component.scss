@@ -1,0 +1,132 @@
+.waiters {
+  @apply max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6;
+}
+
+/* ===== Top bar ===== */
+
+.topbar {
+  @apply bg-white rounded-2xl px-6 py-4 shadow-sm border border-orange-100/80;
+}
+
+.topbar-inner {
+  @apply flex items-center justify-between;
+}
+
+.topbar-right {
+  @apply flex items-center gap-3;
+}
+
+.logo {
+  @apply text-2xl font-extrabold tracking-tight text-stone-900;
+}
+
+.logo-accent {
+  @apply text-amber-600;
+}
+
+.order-count {
+  @apply text-sm font-medium
+    bg-orange-50 text-amber-700 rounded-full px-3 py-1;
+}
+
+.call-badge {
+  @apply inline-flex items-center gap-1 rounded-full
+    bg-amber-500 text-white
+    px-3 py-1 text-sm font-bold animate-pulse shadow-sm;
+}
+
+/* ===== Waiter Calls ===== */
+
+.calls-section {
+  @apply bg-gradient-to-br from-amber-50 to-orange-50
+    rounded-2xl p-5 border border-amber-200 shadow-sm space-y-3;
+}
+
+.section-title {
+  @apply text-base font-bold text-stone-900;
+}
+
+.calls-grid {
+  @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3;
+}
+
+.call-card {
+  @apply flex items-center gap-3 bg-white rounded-xl p-4
+    border border-amber-200 shadow-sm
+    hover:shadow-md transition-shadow;
+}
+
+.call-card__icon {
+  @apply text-2xl flex-shrink-0;
+}
+
+.call-card__info {
+  @apply flex flex-col flex-1 min-w-0;
+}
+
+.call-card__table {
+  @apply text-sm font-bold text-stone-900;
+}
+
+.call-card__time {
+  @apply text-xs text-amber-600 font-semibold;
+}
+
+.call-card__btn {
+  @apply flex-shrink-0 rounded-xl bg-emerald-600 text-white px-4 py-2 text-sm font-bold
+    hover:bg-emerald-700 transition-all shadow-sm hover:shadow-md;
+}
+
+/* ===== Filters ===== */
+
+.filter-bar {
+  @apply flex flex-wrap gap-2;
+}
+
+.filter-tab {
+  @apply px-4 py-2 rounded-xl text-sm font-semibold
+    bg-white border border-orange-100/80 shadow-sm
+    text-stone-500 hover:text-stone-900 hover:border-orange-200
+    transition-all duration-150;
+}
+
+.filter-tab.active {
+  @apply bg-amber-600 text-white border-amber-600 shadow-md;
+}
+
+/* ===== States ===== */
+
+.loading {
+  @apply text-center py-20 text-stone-400 space-y-2;
+}
+
+.loading-icon {
+  @apply text-4xl;
+}
+
+.error-card {
+  @apply bg-red-50 text-red-700 rounded-2xl p-6 ring-1 ring-red-200 font-semibold;
+}
+
+.empty {
+  @apply text-center py-20 space-y-2;
+}
+
+.empty-icon {
+  @apply mx-auto w-16 h-16 rounded-full bg-orange-100 text-amber-600
+    flex items-center justify-center text-2xl font-bold;
+}
+
+.empty-title {
+  @apply text-lg font-bold text-stone-400 mt-3;
+}
+
+.empty-sub {
+  @apply text-sm text-stone-400;
+}
+
+/* ===== Order grid ===== */
+
+.order-grid {
+  @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4;
+}

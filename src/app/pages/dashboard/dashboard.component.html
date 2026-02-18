@@ -1,0 +1,52 @@
+<div class="dashboard">
+  <!-- Top bar -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <h1 class="logo">{{ restaurantName() || 'QrCafe' }} <span class="logo-accent">Cocina</span></h1>
+      <span class="order-count">{{ orderCount }} órdenes</span>
+    </div>
+    <a class="btn-products"
+       [routerLink]="['/products']"
+       [queryParams]="{ restaurantId: restaurantId }">
+      Productos
+    </a>
+  </header>
+
+  <!-- Error state -->
+  <div *ngIf="error()" class="error-card">
+    <p>{{ error() }}</p>
+  </div>
+
+  <!-- Filter tabs -->
+  <div class="filter-bar" *ngIf="!error()">
+    <button
+      *ngFor="let f of filters"
+      class="filter-tab"
+      [class.active]="activeFilter() === f.value"
+      (click)="setFilter(f.value)">
+      {{ f.label }}
+    </button>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading()" class="loading">
+    <div class="loading-icon">🍳</div>
+    <p>Cargando órdenes...</p>
+  </div>
+
+  <!-- Empty state -->
+  <div *ngIf="!loading() && !error() && orders().length === 0" class="empty">
+    <div class="empty-icon">✓</div>
+    <p class="empty-title">Sin órdenes</p>
+    <p class="empty-sub">No hay órdenes con este filtro.</p>
+  </div>
+
+  <!-- Order grid -->
+  <div *ngIf="!loading() && orders().length > 0" class="order-grid">
+    <app-order-card
+      *ngFor="let o of orders()"
+      [order]="o"
+      (statusChange)="onStatusChange($event)">
+    </app-order-card>
+  </div>
+</div>

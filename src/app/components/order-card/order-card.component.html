@@ -1,0 +1,47 @@
+<div class="card" [attr.data-status]="order.status">
+  <!-- Color accent bar -->
+  <div class="card-accent" [attr.data-status]="order.status"></div>
+
+  <!-- Header row -->
+  <div class="card-header">
+    <div class="order-id">#{{ order.orderId.substring(0, 8) }}</div>
+    <div class="time-ago">{{ timeAgo }}</div>
+  </div>
+
+  <!-- Table / type -->
+  <div class="card-meta">
+    <span class="type-badge" [attr.data-type]="order.orderType">
+      {{ orderTypeLabel }}
+    </span>
+    <span *ngIf="order.tableNumber != null" class="table-label">{{ tableLabel }}</span>
+  </div>
+
+  <!-- Customer -->
+  <div *ngIf="order.customerName" class="customer">{{ order.customerName }}</div>
+
+  <!-- Total -->
+  <div class="total">{{ formatMoney(order.total) }}</div>
+
+  <!-- Payment method badge (prominent in waiter mode) -->
+  <div *ngIf="mode === 'waiter' && order.paymentMethod" class="payment-method-row">
+    <span class="payment-badge" [attr.data-method]="order.paymentMethod">
+      {{ order.paymentMethod === 'CASH' ? '💵 Efectivo' : '💳 Tarjeta' }}
+    </span>
+    <span *ngIf="waitingSince" class="waiting-since">Esperando {{ waitingSince }}</span>
+  </div>
+
+  <!-- Status badge -->
+  <div class="status-badge" [attr.data-status]="order.status">
+    {{ statusLabel }}
+  </div>
+
+  <!-- Actions -->
+  <div class="actions" *ngIf="nextAction || canCancel">
+    <button *ngIf="nextAction" class="btn-advance" [attr.data-status]="nextAction.status" (click)="onAdvance()">
+      {{ nextAction.label }}
+    </button>
+    <button *ngIf="canCancel" class="btn-cancel" (click)="onCancel()">
+      Cancelar
+    </button>
+  </div>
+</div>
