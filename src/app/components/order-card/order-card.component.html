@@ -19,6 +19,36 @@
   <!-- Customer -->
   <div *ngIf="order.customerName" class="customer">{{ order.customerName }}</div>
 
+  <!-- Order items -->
+  <div class="items-section" *ngIf="order.items?.length">
+    <div *ngFor="let item of visibleItems; let i = index"
+         class="item-row"
+         [class.item-checked]="mode === 'kitchen' && isChecked(i)">
+
+      <label *ngIf="mode === 'kitchen'" class="item-checkbox" (click)="$event.stopPropagation()">
+        <input type="checkbox"
+               [checked]="isChecked(i)"
+               [disabled]="!checkboxesEnabled"
+               (change)="toggleCheck(i)" />
+      </label>
+
+      <span class="item-qty">{{ item.qty }}x</span>
+      <span class="item-name">{{ item.productName }}</span>
+      <span *ngIf="item.notes" class="item-notes">{{ item.notes }}</span>
+    </div>
+
+    <button *ngIf="hasMoreItems && !itemsExpanded()"
+            class="btn-expand"
+            (click)="toggleItemsExpanded()">
+      ver todo ({{ order.items.length }})
+    </button>
+    <button *ngIf="hasMoreItems && itemsExpanded()"
+            class="btn-expand"
+            (click)="toggleItemsExpanded()">
+      ver menos
+    </button>
+  </div>
+
   <!-- Total -->
   <div class="total">{{ formatMoney(order.total) }}</div>
 
@@ -33,6 +63,21 @@
   <!-- Status badge -->
   <div class="status-badge" [attr.data-status]="order.status">
     {{ statusLabel }}
+  </div>
+
+  <!-- Collect (waiter quick-pay for DELIVERED) -->
+  <div *ngIf="showCollectBtn" class="collect-section">
+    <button *ngIf="!showCollectOptions()" class="btn-collect" (click)="toggleCollectOptions()">
+      Cobrar
+    </button>
+    <div *ngIf="showCollectOptions()" class="collect-options">
+      <button class="btn-collect-method btn-collect-cash" (click)="onCollect('CASH')">
+        Efectivo
+      </button>
+      <button class="btn-collect-method btn-collect-card" (click)="onCollect('CARD')">
+        Tarjeta
+      </button>
+    </div>
   </div>
 
   <!-- Actions -->

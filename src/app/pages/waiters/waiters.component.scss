@@ -29,6 +29,11 @@
     bg-orange-50 text-amber-700 rounded-full px-3 py-1;
 }
 
+.btn-new-order {
+  @apply text-sm font-bold text-white bg-amber-600 hover:bg-amber-700
+    px-4 py-2 rounded-xl transition-colors no-underline shadow-sm;
+}
+
 .call-badge {
   @apply inline-flex items-center gap-1 rounded-full
     bg-amber-500 text-white
@@ -72,9 +77,18 @@
   @apply text-xs text-amber-600 font-semibold;
 }
 
+.call-card__actions {
+  @apply flex flex-col gap-2 flex-shrink-0;
+}
+
 .call-card__btn {
-  @apply flex-shrink-0 rounded-xl bg-emerald-600 text-white px-4 py-2 text-sm font-bold
-    hover:bg-emerald-700 transition-all shadow-sm hover:shadow-md;
+  @apply rounded-xl bg-emerald-600 text-white px-3 py-1.5 text-xs font-bold
+    hover:bg-emerald-700 transition-all shadow-sm hover:shadow-md
+    text-center no-underline cursor-pointer border-0;
+}
+
+.call-card__btn--order {
+  @apply bg-amber-500 hover:bg-amber-600;
 }
 
 /* ===== Filters ===== */

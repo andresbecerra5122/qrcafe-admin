@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 
 import { OrdersService } from '../../services/orders.service';
 import { WaiterCallsService } from '../../services/waiter-calls.service';
@@ -18,7 +18,7 @@ interface FilterTab {
 @Component({
   selector: 'app-waiters',
   standalone: true,
-  imports: [CommonModule, OrderCardComponent],
+  imports: [CommonModule, OrderCardComponent, RouterLink],
   templateUrl: './waiters.component.html',
   styleUrl: './waiters.component.scss'
 })
@@ -119,11 +119,22 @@ export class WaitersComponent implements OnInit, OnDestroy {
     });
   }
 
+  onCollect(event: { orderId: string; paymentMethod: string }) {
+    this.ordersService.collectOrder(event.orderId, event.paymentMethod).subscribe({
+      next: () => this.fetchOrders(),
+      error: (err) => console.error('Failed to collect order', err)
+    });
+  }
+
   attendCall(callId: string) {
     this.waiterCallsService.attend(callId).subscribe({
       next: () => this.fetchWaiterCalls(),
       error: (err) => console.error('Failed to attend call', err)
     });
+  }
+
+  trackByOrderId(_index: number, order: OpsOrder): string {
+    return order.orderId;
   }
 
   get orderCount(): number {

@@ -1,6 +1,6 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { OpsOrder } from '../../models/order.model';
+import { OpsOrder, OpsOrderItem } from '../../models/order.model';
 
 @Component({
   selector: 'app-order-card',
@@ -13,6 +13,13 @@ export class OrderCardComponent {
   @Input({ required: true }) order!: OpsOrder;
   @Input() mode: 'kitchen' | 'waiter' = 'kitchen';
   @Output() statusChange = new EventEmitter<{ orderId: string; newStatus: string }>();
+  @Output() collectOrder = new EventEmitter<{ orderId: string; paymentMethod: string }>();
+
+  showCollectOptions = signal(false);
+  itemsExpanded = signal(false);
+  checkedItems = signal<Set<number>>(new Set());
+
+  private readonly MAX_VISIBLE = 4;
 
   get timeAgo(): string {
     const now = Date.now();
@@ -68,11 +75,11 @@ export class OrderCardComponent {
       switch (this.order.status) {
         case 'CREATED':      return { label: 'Preparar', status: 'IN_PROGRESS' };
         case 'IN_PROGRESS':  return { label: 'Listo', status: 'READY' };
-        case 'READY':        return { label: 'Entregado', status: 'DELIVERED' };
         default:             return null;
       }
     } else {
       switch (this.order.status) {
+        case 'READY':           return { label: 'Entregado', status: 'DELIVERED' };
         case 'PAYMENT_PENDING': return { label: 'Cobrado', status: 'PAID' };
         default:                return null;
       }
@@ -86,6 +93,10 @@ export class OrderCardComponent {
     return false;
   }
 
+  get showCollectBtn(): boolean {
+    return this.mode === 'waiter' && this.order.status === 'DELIVERED';
+  }
+
   onAdvance() {
     const action = this.nextAction;
     if (action) {
@@ -95,6 +106,51 @@ export class OrderCardComponent {
 
   onCancel() {
     this.statusChange.emit({ orderId: this.order.orderId, newStatus: 'CANCELLED' });
+  }
+
+  toggleCollectOptions() {
+    this.showCollectOptions.update(v => !v);
+  }
+
+  onCollect(method: string) {
+    this.collectOrder.emit({ orderId: this.order.orderId, paymentMethod: method });
+    this.showCollectOptions.set(false);
+  }
+
+  get visibleItems(): OpsOrderItem[] {
+    const items = this.order.items ?? [];
+    if (this.itemsExpanded() || items.length <= this.MAX_VISIBLE) return items;
+    return items.slice(0, this.MAX_VISIBLE);
+  }
+
+  get hasMoreItems(): boolean {
+    return (this.order.items?.length ?? 0) > this.MAX_VISIBLE;
+  }
+
+  get hiddenItemCount(): number {
+    return (this.order.items?.length ?? 0) - this.MAX_VISIBLE;
+  }
+
+  toggleItemsExpanded() {
+    this.itemsExpanded.update(v => !v);
+  }
+
+  get checkboxesEnabled(): boolean {
+    return this.mode === 'kitchen'
+      && (this.order.status === 'IN_PROGRESS' || this.order.status === 'READY');
+  }
+
+  isChecked(index: number): boolean {
+    return this.checkedItems().has(index);
+  }
+
+  toggleCheck(index: number) {
+    this.checkedItems.update(s => {
+      const next = new Set(s);
+      if (next.has(index)) next.delete(index);
+      else next.add(index);
+      return next;
+    });
   }
 
   formatMoney(value: number): string {

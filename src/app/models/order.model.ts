@@ -1,3 +1,9 @@
+export interface OpsOrderItem {
+  productName: string;
+  qty: number;
+  notes: string | null;
+}
+
 export interface OpsOrder {
   orderId: string;
   orderType: string;
@@ -9,4 +15,5 @@ export interface OpsOrder {
   currency: string;
   total: number;
   createdAt: string;
+  items: OpsOrderItem[];
 }

@@ -101,6 +101,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
     });
   }
 
+  trackByOrderId(_index: number, order: OpsOrder): string {
+    return order.orderId;
+  }
+
   get orderCount(): number {
     return this.orders().length;
   }

@@ -4,6 +4,11 @@
     <div class="topbar-inner">
       <h1 class="logo">{{ restaurantName() || 'QrCafe' }} <span class="logo-accent">Meseros</span></h1>
       <div class="topbar-right">
+        <a class="btn-new-order"
+           [routerLink]="['/new-order']"
+           [queryParams]="{ restaurantId: restaurantId }">
+          + Nueva orden
+        </a>
         <span *ngIf="pendingCallCount > 0" class="call-badge">🔔 {{ pendingCallCount }} llamada{{ pendingCallCount > 1 ? 's' : '' }}</span>
         <span class="order-count">{{ orderCount }} órdenes</span>
       </div>
@@ -27,9 +32,16 @@
           </span>
           <span class="call-card__time">Hace {{ timeAgoFromDate(call.createdAt) }}</span>
         </div>
-        <button class="call-card__btn" (click)="attendCall(call.id)">
-          Atendido ✓
-        </button>
+        <div class="call-card__actions">
+          <a class="call-card__btn call-card__btn--order"
+             [routerLink]="['/new-order']"
+             [queryParams]="{ restaurantId: restaurantId, tableNumber: call.tableNumber }">
+            Tomar pedido
+          </a>
+          <button class="call-card__btn" (click)="attendCall(call.id)">
+            Atendido ✓
+          </button>
+        </div>
       </div>
     </div>
   </section>
@@ -61,10 +73,11 @@
   <!-- Order grid -->
   <div *ngIf="!loading() && orders().length > 0" class="order-grid">
     <app-order-card
-      *ngFor="let o of orders()"
+      *ngFor="let o of orders(); trackBy: trackByOrderId"
       [order]="o"
       [mode]="'waiter'"
-      (statusChange)="onStatusChange($event)">
+      (statusChange)="onStatusChange($event)"
+      (collectOrder)="onCollect($event)">
     </app-order-card>
   </div>
 </div>

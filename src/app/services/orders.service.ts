@@ -4,6 +4,14 @@ import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { OpsOrder } from '../models/order.model';
 
+export interface CreateOpsOrderRequest {
+  restaurantId: string;
+  tableNumber?: number;
+  customerName?: string;
+  notes?: string;
+  items: { productId: string; qty: number; notes?: string }[];
+}
+
 @Injectable({ providedIn: 'root' })
 export class OrdersService {
   private baseUrl = environment.apiBaseUrl;
@@ -18,10 +26,21 @@ export class OrdersService {
     return this.http.get<OpsOrder[]>(url);
   }
 
+  createOrder(body: CreateOpsOrderRequest): Observable<any> {
+    return this.http.post(`${this.baseUrl}/ops/orders`, body);
+  }
+
   updateStatus(orderId: string, status: string): Observable<void> {
     return this.http.patch<void>(
       `${this.baseUrl}/ops/orders/${orderId}/status`,
       { status }
+    );
+  }
+
+  collectOrder(orderId: string, paymentMethod: string): Observable<void> {
+    return this.http.patch<void>(
+      `${this.baseUrl}/ops/orders/${orderId}/collect`,
+      { paymentMethod }
     );
   }
 }

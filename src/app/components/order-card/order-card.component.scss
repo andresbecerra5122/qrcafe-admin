@@ -53,6 +53,49 @@
   @apply text-sm text-stone-500;
 }
 
+/* ===== Order items ===== */
+
+.items-section {
+  @apply space-y-1 border-t border-orange-100 pt-2;
+}
+
+.item-row {
+  @apply flex items-center gap-2 py-0.5 text-sm transition-opacity;
+}
+
+.item-row.item-checked {
+  @apply opacity-40;
+
+  .item-name {
+    @apply line-through;
+  }
+}
+
+.item-checkbox {
+  @apply flex-shrink-0 cursor-pointer;
+
+  input[type="checkbox"] {
+    @apply w-4 h-4 accent-emerald-600 cursor-pointer;
+  }
+}
+
+.item-qty {
+  @apply font-bold text-amber-700 flex-shrink-0 w-6 text-right;
+}
+
+.item-name {
+  @apply text-stone-800 font-medium truncate;
+}
+
+.item-notes {
+  @apply text-xs text-stone-400 italic truncate;
+}
+
+.btn-expand {
+  @apply text-xs text-amber-600 font-semibold hover:text-amber-800
+    cursor-pointer bg-transparent border-0 p-0 mt-1 transition-colors;
+}
+
 .total {
   @apply text-xl font-extrabold text-stone-900;
 }
@@ -130,4 +173,33 @@
 .btn-cancel {
   @apply rounded-xl border border-red-200 text-red-500 px-4 py-2.5 text-sm font-bold
     hover:bg-red-50 transition-colors;
+}
+
+/* ===== Collect (waiter quick-pay) ===== */
+
+.collect-section {
+  @apply pt-1;
+}
+
+.btn-collect {
+  @apply w-full rounded-xl py-2.5 text-sm font-bold text-white
+    bg-emerald-600 hover:bg-emerald-700 transition-all shadow-sm
+    border-0 cursor-pointer;
+}
+
+.collect-options {
+  @apply flex gap-2;
+}
+
+.btn-collect-method {
+  @apply flex-1 rounded-xl py-2.5 text-sm font-bold text-white
+    transition-all shadow-sm hover:shadow-md border-0 cursor-pointer;
+}
+
+.btn-collect-cash {
+  @apply bg-emerald-600 hover:bg-emerald-700;
+}
+
+.btn-collect-card {
+  @apply bg-amber-600 hover:bg-amber-700;
 }

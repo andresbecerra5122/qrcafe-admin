@@ -44,7 +44,7 @@
   <!-- Order grid -->
   <div *ngIf="!loading() && orders().length > 0" class="order-grid">
     <app-order-card
-      *ngFor="let o of orders()"
+      *ngFor="let o of orders(); trackBy: trackByOrderId"
       [order]="o"
       (statusChange)="onStatusChange($event)">
     </app-order-card>
