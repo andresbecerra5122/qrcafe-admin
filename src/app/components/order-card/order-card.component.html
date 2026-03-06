@@ -89,4 +89,9 @@
       Cancelar
     </button>
   </div>
+
+  <!-- Invoice -->
+  <button *ngIf="order.status === 'PAID'" class="btn-invoice" (click)="viewInvoice()">
+    Factura
+  </button>
 </div>

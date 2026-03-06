@@ -2,7 +2,7 @@
   <!-- Top bar -->
   <header class="topbar">
     <div class="topbar-left">
-      <h1 class="logo">{{ restaurantName() || 'QrCafe' }} <span class="logo-accent">Productos</span></h1>
+      <h1 class="logo">{{ restaurantName() || 'QrCafe' }} <span class="logo-accent">{{ panelTitle() }}</span></h1>
       <span class="product-count">{{ availableCount }}/{{ totalCount }} disponibles</span>
     </div>
     <a class="btn-back"
@@ -11,6 +11,44 @@
       Volver a Cocina
     </a>
   </header>
+
+  <section *ngIf="adminPanel" class="create-card">
+    <h2 class="create-title">Agregar producto</h2>
+    <div class="create-grid">
+      <label class="field">
+        <span class="field-label">Nombre</span>
+        <input class="create-input" type="text" placeholder="Nombre del producto" [(ngModel)]="newName" />
+      </label>
+      <label class="field">
+        <span class="field-label">Categoría</span>
+        <input class="create-input" type="text" placeholder="Ej: Bebidas" [(ngModel)]="newCategory" />
+      </label>
+      <label class="field">
+        <span class="field-label">Precio</span>
+        <input class="create-input" type="number" min="0" placeholder="Ej: 12000" [(ngModel)]="newPrice" />
+      </label>
+      <label class="field">
+        <span class="field-label">Orden</span>
+        <input class="create-input" type="number" min="0" placeholder="Orden de visualización" [(ngModel)]="newSort" />
+      </label>
+      <label class="field">
+        <span class="field-label">URL de imagen</span>
+        <input class="create-input" type="text" placeholder="https://..." [(ngModel)]="newImageUrl" />
+      </label>
+      <label class="create-check field">
+        <span class="field-label">Estado inicial</span>
+        <input type="checkbox" [(ngModel)]="newAvailable" />
+        Disponible
+      </label>
+      <label class="field create-textarea">
+        <span class="field-label">Descripción</span>
+        <textarea class="create-input" rows="2" placeholder="Descripción (opcional)" [(ngModel)]="newDescription"></textarea>
+      </label>
+    </div>
+    <button class="btn-create" type="button" [disabled]="saving() || !newName.trim()" (click)="createProduct()">
+      {{ saving() ? 'Guardando...' : 'Crear producto' }}
+    </button>
+  </section>
 
   <!-- Error -->
   <div *ngIf="error()" class="error-card">
@@ -38,7 +76,7 @@
       <div class="product-list">
         <div *ngFor="let p of group.items"
              class="product-row"
-             [class.unavailable]="!p.isAvailable">
+             [class.unavailable]="!isToggleOn(p)">
 
           <div class="product-thumb"
                *ngIf="p.imageUrl"
@@ -50,21 +88,78 @@
 
           <div class="product-info">
             <span class="product-name">{{ p.name }}</span>
+            <span class="product-price" *ngIf="p.description">{{ p.description }}</span>
             <span class="product-price">${{ formatPrice(p.price) }}</span>
           </div>
 
           <div class="product-toggle">
             <button
               class="toggle-switch"
-              [class.toggle-on]="p.isAvailable"
-              [class.toggle-off]="!p.isAvailable"
+              [class.toggle-on]="isToggleOn(p)"
+              [class.toggle-off]="!isToggleOn(p)"
               [disabled]="togglingId() === p.id"
               (click)="toggleAvailability(p)">
               <span class="toggle-knob"></span>
             </button>
-            <span class="toggle-label" [class.available]="p.isAvailable">
-              {{ p.isAvailable ? 'Disponible' : 'No disponible' }}
+            <span class="toggle-label" [class.available]="isToggleOn(p)">
+              {{ toggleLabel(p) }}
             </span>
+          </div>
+
+          <div *ngIf="adminPanel" class="product-actions">
+            <button class="btn-row" type="button" (click)="startEdit(p)">Editar</button>
+            <button
+              class="btn-row btn-row--danger"
+              type="button"
+              [disabled]="deletingId() === p.id"
+              (click)="deleteProduct(p)">
+              {{ deletingId() === p.id ? 'Eliminando...' : 'Eliminar' }}
+            </button>
+          </div>
+        </div>
+
+        <div *ngIf="adminPanel && editingId()" class="edit-card">
+          <h3>Editar producto</h3>
+          <div class="create-grid">
+            <label class="field">
+              <span class="field-label">Nombre</span>
+              <input class="create-input" type="text" placeholder="Nombre" [(ngModel)]="editName" />
+            </label>
+            <label class="field">
+              <span class="field-label">Categoría</span>
+              <input class="create-input" type="text" placeholder="Categoría" [(ngModel)]="editCategory" />
+            </label>
+            <label class="field">
+              <span class="field-label">Precio</span>
+              <input class="create-input" type="number" min="0" placeholder="Precio" [(ngModel)]="editPrice" />
+            </label>
+            <label class="field">
+              <span class="field-label">Orden</span>
+              <input class="create-input" type="number" min="0" placeholder="Orden (sort)" [(ngModel)]="editSort" />
+            </label>
+            <label class="field">
+              <span class="field-label">URL de imagen</span>
+              <input class="create-input" type="text" placeholder="URL imagen (opcional)" [(ngModel)]="editImageUrl" />
+            </label>
+            <label class="create-check field">
+              <span class="field-label">Disponibilidad</span>
+              <input type="checkbox" [(ngModel)]="editAvailable" />
+              Disponible
+            </label>
+            <label class="field create-textarea">
+              <span class="field-label">Descripción</span>
+              <textarea class="create-input" rows="2" placeholder="Descripción (opcional)" [(ngModel)]="editDescription"></textarea>
+            </label>
+          </div>
+          <div class="edit-actions">
+            <button class="btn-row" type="button" (click)="cancelEdit()">Cancelar</button>
+            <button
+              class="btn-create"
+              type="button"
+              [disabled]="saving() || !editName.trim()"
+              (click)="saveEdit(editingId()!)">
+              {{ saving() ? 'Guardando...' : 'Guardar cambios' }}
+            </button>
           </div>
         </div>
       </div>

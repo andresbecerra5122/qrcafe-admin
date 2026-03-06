@@ -158,4 +158,14 @@ export class OrderCardComponent {
     const locale = currency === 'EUR' ? 'es-ES' : 'es-CO';
     return new Intl.NumberFormat(locale, { style: 'currency', currency }).format(value);
   }
+
+  viewInvoice() {
+    const invoicePath = `/invoice/${this.order.orderId}`;
+    const origin = window.location.origin;
+    // In Docker both apps share the same origin; in dev the customer app is on port 4200
+    const url = origin.includes(':4201')
+      ? origin.replace(':4201', ':4200') + invoicePath
+      : invoicePath;
+    window.open(url, '_blank');
+  }
 }

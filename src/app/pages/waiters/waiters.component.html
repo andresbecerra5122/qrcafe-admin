@@ -11,6 +11,9 @@
         </a>
         <span *ngIf="pendingCallCount > 0" class="call-badge">🔔 {{ pendingCallCount }} llamada{{ pendingCallCount > 1 ? 's' : '' }}</span>
         <span class="order-count">{{ orderCount }} órdenes</span>
+        <button class="btn-new-order" type="button" (click)="logout()">
+          Salir
+        </button>
       </div>
     </div>
   </header>

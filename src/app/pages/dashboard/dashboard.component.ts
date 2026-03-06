@@ -4,6 +4,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 
 import { OrdersService } from '../../services/orders.service';
 import { RestaurantService } from '../../services/restaurant.service';
+import { AuthService } from '../../services/auth.service';
 import { OpsOrder } from '../../models/order.model';
 import { OrderCardComponent } from '../../components/order-card/order-card.component';
 
@@ -42,14 +43,16 @@ export class DashboardComponent implements OnInit, OnDestroy {
   constructor(
     private route: ActivatedRoute,
     private ordersService: OrdersService,
-    private restaurantService: RestaurantService
+    private restaurantService: RestaurantService,
+    private authService: AuthService
   ) {}
 
   ngOnInit() {
-    this.restaurantId = this.route.snapshot.queryParamMap.get('restaurantId') ?? '';
+    const routeRestaurantId = this.route.snapshot.queryParamMap.get('restaurantId');
+    this.restaurantId = this.authService.enforceRestaurantContext(routeRestaurantId);
 
     if (!this.restaurantId) {
-      this.error.set('Falta el parámetro restaurantId. Ejemplo: /dashboard?restaurantId=...');
+      this.error.set('No tienes permiso para acceder a este restaurante.');
       this.loading.set(false);
       return;
     }
@@ -107,6 +110,22 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   get orderCount(): number {
     return this.orders().length;
+  }
+
+  canManageStaff(): boolean {
+    return this.authService.hasAnyRole(['admin', 'manager']);
+  }
+
+  canManageProducts(): boolean {
+    return this.authService.hasAnyRole(['admin', 'manager']);
+  }
+
+  canControlAvailability(): boolean {
+    return this.authService.hasAnyRole(['kitchen', 'admin', 'manager']);
+  }
+
+  logout(): void {
+    this.authService.logout();
   }
 
   private stopPolling() {

@@ -203,3 +203,11 @@
 .btn-collect-card {
   @apply bg-amber-600 hover:bg-amber-700;
 }
+
+/* ===== Invoice button ===== */
+
+.btn-invoice {
+  @apply w-full rounded-xl py-2.5 text-sm font-bold
+    bg-stone-100 text-stone-700 border border-stone-200
+    hover:bg-stone-200 transition-all cursor-pointer;
+}

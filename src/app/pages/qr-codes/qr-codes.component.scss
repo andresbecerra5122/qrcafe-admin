@@ -1,0 +1,150 @@
+.qr-page {
+  @apply max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6;
+}
+
+/* ===== Top bar ===== */
+
+.topbar {
+  @apply bg-white rounded-2xl px-6 py-4 shadow-sm border border-orange-100/80
+    flex items-center justify-between flex-wrap gap-3;
+}
+
+.topbar-left {
+  @apply flex items-center gap-3;
+}
+
+.logo {
+  @apply text-2xl font-extrabold tracking-tight text-stone-900;
+}
+
+.logo-accent {
+  @apply text-amber-600;
+}
+
+.table-count {
+  @apply text-sm font-medium bg-orange-50 text-amber-700 rounded-full px-3 py-1;
+}
+
+.topbar-actions {
+  @apply flex items-center gap-3;
+}
+
+.btn-back {
+  @apply text-sm font-semibold text-amber-700 bg-orange-50 hover:bg-orange-100
+    px-4 py-2 rounded-xl transition-colors no-underline;
+}
+
+.btn-print {
+  @apply text-sm font-semibold text-white bg-amber-600 hover:bg-amber-700
+    px-4 py-2 rounded-xl transition-colors disabled:opacity-40;
+}
+
+/* ===== URL config ===== */
+
+.url-config {
+  @apply bg-white rounded-2xl p-6 shadow-sm border border-orange-100/80 space-y-2;
+}
+
+.url-label {
+  @apply block text-sm font-semibold text-stone-700;
+}
+
+.url-input {
+  @apply w-full px-4 py-2.5 rounded-xl border border-orange-200 bg-orange-50/50
+    text-stone-800 text-sm font-mono
+    focus:outline-none focus:ring-2 focus:ring-amber-400/50 focus:border-amber-400
+    transition-all;
+}
+
+.url-hint {
+  @apply text-xs text-stone-400;
+}
+
+/* ===== States ===== */
+
+.loading {
+  @apply text-center py-20 text-stone-400 space-y-2;
+}
+
+.loading-icon {
+  @apply text-4xl;
+}
+
+.error-card {
+  @apply bg-red-50 text-red-700 rounded-2xl p-6 ring-1 ring-red-200 font-semibold;
+}
+
+.empty {
+  @apply text-center py-20 space-y-2;
+}
+
+.empty-icon {
+  @apply mx-auto w-16 h-16 rounded-full bg-orange-100 text-amber-600
+    flex items-center justify-center text-2xl font-bold;
+}
+
+.empty-title {
+  @apply text-lg font-bold text-stone-400 mt-3;
+}
+
+.empty-sub {
+  @apply text-sm text-stone-400;
+}
+
+/* ===== QR Grid ===== */
+
+.qr-grid {
+  @apply grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5;
+}
+
+.qr-card {
+  @apply bg-white rounded-2xl shadow-sm border border-orange-100/80
+    flex flex-col items-center p-5 gap-2;
+}
+
+.qr-card-header {
+  @apply text-lg font-bold text-stone-800;
+}
+
+.qr-card-url {
+  @apply text-[10px] text-stone-400 text-center break-all leading-tight mt-1 max-w-[200px];
+}
+
+/* ===== Print styles ===== */
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  body {
+    background: white !important;
+  }
+
+  .qr-page {
+    padding: 0;
+    margin: 0;
+    max-width: 100%;
+  }
+
+  .qr-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    padding: 16px;
+  }
+
+  .qr-card {
+    border: 1px solid #e5e5e5;
+    border-radius: 12px;
+    padding: 16px;
+    page-break-inside: avoid;
+    break-inside: avoid;
+    box-shadow: none;
+  }
+
+  .qr-card-header {
+    font-size: 18px;
+    font-weight: 700;
+  }
+}

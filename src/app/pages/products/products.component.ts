@@ -1,36 +1,61 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ProductsService } from '../../services/products.service';
 import { RestaurantService } from '../../services/restaurant.service';
+import { AuthService } from '../../services/auth.service';
 import { OpsProduct } from '../../models/product.model';
 
 @Component({
   selector: 'app-products',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './products.component.html',
   styleUrl: './products.component.scss'
 })
 export class ProductsComponent implements OnInit {
   restaurantId = '';
+  adminPanel = false;
   restaurantName = signal('');
   products = signal<OpsProduct[]>([]);
   loading = signal(true);
   error = signal<string | null>(null);
   togglingId = signal<string | null>(null);
+  saving = signal(false);
+  deletingId = signal<string | null>(null);
+  editingId = signal<string | null>(null);
+
+  newName = '';
+  newDescription = '';
+  newCategory = '';
+  newPrice = 0;
+  newSort = 0;
+  newImageUrl = '';
+  newAvailable = true;
+
+  editName = '';
+  editDescription = '';
+  editCategory = '';
+  editPrice = 0;
+  editSort = 0;
+  editImageUrl = '';
+  editAvailable = true;
 
   constructor(
     private route: ActivatedRoute,
     private productsService: ProductsService,
-    private restaurantService: RestaurantService
+    private restaurantService: RestaurantService,
+    private authService: AuthService
   ) {}
 
   ngOnInit() {
-    this.restaurantId = this.route.snapshot.queryParamMap.get('restaurantId') ?? '';
+    this.adminPanel = this.route.snapshot.data['adminPanel'] === true;
+    const routeRestaurantId = this.route.snapshot.queryParamMap.get('restaurantId');
+    this.restaurantId = this.authService.enforceRestaurantContext(routeRestaurantId);
 
     if (!this.restaurantId) {
-      this.error.set('Falta el parámetro restaurantId.');
+      this.error.set('No tienes permiso para acceder a este restaurante.');
       this.loading.set(false);
       return;
     }
@@ -43,7 +68,7 @@ export class ProductsComponent implements OnInit {
   }
 
   fetchProducts() {
-    this.productsService.getProducts(this.restaurantId).subscribe({
+    this.productsService.getProducts(this.restaurantId, this.adminPanel).subscribe({
       next: (list) => {
         this.products.set(list);
         this.loading.set(false);
@@ -57,11 +82,26 @@ export class ProductsComponent implements OnInit {
   }
 
   toggleAvailability(product: OpsProduct) {
-    if (this.togglingId()) return;
+    if (this.togglingId() || this.saving()) return;
 
     this.togglingId.set(product.id);
-    const newValue = !product.isAvailable;
+    if (this.adminPanel) {
+      const newVisibility = !product.isActive;
+      this.productsService.updateProduct(product.id, { isActive: newVisibility }).subscribe({
+        next: () => {
+          this.products.update(list =>
+            list.map(p => p.id === product.id ? { ...p, isActive: newVisibility } : p)
+          );
+          this.togglingId.set(null);
+        },
+        error: () => {
+          this.togglingId.set(null);
+        }
+      });
+      return;
+    }
 
+    const newValue = !product.isAvailable;
     this.productsService.toggleAvailability(product.id, newValue).subscribe({
       next: () => {
         this.products.update(list =>
@@ -71,6 +111,97 @@ export class ProductsComponent implements OnInit {
       },
       error: () => {
         this.togglingId.set(null);
+      }
+    });
+  }
+
+  createProduct() {
+    if (!this.adminPanel) return;
+    if (this.saving()) return;
+
+    const name = this.newName.trim();
+    if (!name) return;
+
+    this.saving.set(true);
+    this.productsService.createProduct({
+      name,
+      description: this.newDescription.trim() || null,
+      categoryName: this.newCategory.trim() || null,
+      price: this.newPrice,
+      sort: this.newSort,
+      imageUrl: this.newImageUrl.trim() || null,
+      isAvailable: this.newAvailable
+    }).subscribe({
+      next: () => {
+        this.resetCreateForm();
+        this.saving.set(false);
+        this.fetchProducts();
+      },
+      error: () => {
+        this.saving.set(false);
+      }
+    });
+  }
+
+  startEdit(product: OpsProduct) {
+    if (!this.adminPanel) return;
+    this.editingId.set(product.id);
+    this.editName = product.name;
+    this.editDescription = product.description ?? '';
+    this.editCategory = product.categoryName ?? '';
+    this.editPrice = product.price;
+    this.editSort = product.sort;
+    this.editImageUrl = product.imageUrl ?? '';
+    this.editAvailable = product.isAvailable;
+  }
+
+  cancelEdit() {
+    this.editingId.set(null);
+  }
+
+  saveEdit(productId: string) {
+    if (!this.adminPanel) return;
+    if (this.saving()) return;
+
+    const name = this.editName.trim();
+    if (!name) return;
+
+    this.saving.set(true);
+    this.productsService.updateProduct(productId, {
+      name,
+      description: this.editDescription.trim() || null,
+      categoryName: this.editCategory.trim() || null,
+      price: this.editPrice,
+      sort: this.editSort,
+      imageUrl: this.editImageUrl.trim() || null,
+      isAvailable: this.editAvailable
+    }).subscribe({
+      next: () => {
+        this.editingId.set(null);
+        this.saving.set(false);
+        this.fetchProducts();
+      },
+      error: () => {
+        this.saving.set(false);
+      }
+    });
+  }
+
+  deleteProduct(product: OpsProduct) {
+    if (!this.adminPanel) return;
+    if (this.saving()) return;
+
+    const ok = confirm(`Eliminar "${product.name}" del listado activo?`);
+    if (!ok) return;
+
+    this.deletingId.set(product.id);
+    this.productsService.deleteProduct(product.id).subscribe({
+      next: () => {
+        this.deletingId.set(null);
+        this.fetchProducts();
+      },
+      error: () => {
+        this.deletingId.set(null);
       }
     });
   }
@@ -96,5 +227,31 @@ export class ProductsComponent implements OnInit {
 
   formatPrice(price: number): string {
     return price.toLocaleString('es-CO', { minimumFractionDigits: 0 });
+  }
+
+  panelTitle(): string {
+    return this.adminPanel ? 'Administración' : 'Disponibilidad';
+  }
+
+  isToggleOn(product: OpsProduct): boolean {
+    return this.adminPanel ? product.isActive : product.isAvailable;
+  }
+
+  toggleLabel(product: OpsProduct): string {
+    if (this.adminPanel) {
+      return product.isActive ? 'Visible en menu' : 'Oculto del menu';
+    }
+
+    return product.isAvailable ? 'Disponible' : 'No disponible';
+  }
+
+  private resetCreateForm() {
+    this.newName = '';
+    this.newDescription = '';
+    this.newCategory = '';
+    this.newPrice = 0;
+    this.newSort = 0;
+    this.newImageUrl = '';
+    this.newAvailable = true;
   }
 }

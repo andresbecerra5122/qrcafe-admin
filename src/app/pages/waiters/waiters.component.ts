@@ -5,6 +5,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { OrdersService } from '../../services/orders.service';
 import { WaiterCallsService } from '../../services/waiter-calls.service';
 import { RestaurantService } from '../../services/restaurant.service';
+import { AuthService } from '../../services/auth.service';
 import { OpsOrder } from '../../models/order.model';
 import { WaiterCall } from '../../models/waiter-call.model';
 import { OrderCardComponent } from '../../components/order-card/order-card.component';
@@ -46,14 +47,16 @@ export class WaitersComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private ordersService: OrdersService,
     private waiterCallsService: WaiterCallsService,
-    private restaurantService: RestaurantService
+    private restaurantService: RestaurantService,
+    private authService: AuthService
   ) {}
 
   ngOnInit() {
-    this.restaurantId = this.route.snapshot.queryParamMap.get('restaurantId') ?? '';
+    const routeRestaurantId = this.route.snapshot.queryParamMap.get('restaurantId');
+    this.restaurantId = this.authService.enforceRestaurantContext(routeRestaurantId);
 
     if (!this.restaurantId) {
-      this.error.set('Falta el parámetro restaurantId. Ejemplo: /waiters?restaurantId=...');
+      this.error.set('No tienes permiso para acceder a este restaurante.');
       this.loading.set(false);
       return;
     }
@@ -143,6 +146,10 @@ export class WaitersComponent implements OnInit, OnDestroy {
 
   get pendingCallCount(): number {
     return this.waiterCalls().length;
+  }
+
+  logout(): void {
+    this.authService.logout();
   }
 
   timeAgoFromDate(dateStr: string): string {

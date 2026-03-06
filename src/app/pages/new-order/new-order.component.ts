@@ -5,6 +5,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ProductsService } from '../../services/products.service';
 import { OrdersService, CreateOpsOrderRequest } from '../../services/orders.service';
 import { RestaurantService } from '../../services/restaurant.service';
+import { AuthService } from '../../services/auth.service';
 import { OpsProduct } from '../../models/product.model';
 
 interface CartItem {
@@ -47,16 +48,18 @@ export class NewOrderComponent implements OnInit {
     private router: Router,
     private productsService: ProductsService,
     private ordersService: OrdersService,
-    private restaurantService: RestaurantService
+    private restaurantService: RestaurantService,
+    private authService: AuthService
   ) {}
 
   ngOnInit() {
-    this.restaurantId = this.route.snapshot.queryParamMap.get('restaurantId') ?? '';
+    const routeRestaurantId = this.route.snapshot.queryParamMap.get('restaurantId');
+    this.restaurantId = this.authService.enforceRestaurantContext(routeRestaurantId);
     const tn = this.route.snapshot.queryParamMap.get('tableNumber');
     if (tn) this.tableNumber.set(parseInt(tn, 10));
 
     if (!this.restaurantId) {
-      this.error.set('Falta el parámetro restaurantId.');
+      this.error.set('No tienes permiso para acceder a este restaurante.');
       this.loading.set(false);
       return;
     }

@@ -1,0 +1,73 @@
+<div class="staff-page">
+  <header class="topbar">
+    <h1>Gestión de Personal</h1>
+    <a [routerLink]="['/dashboard']" class="btn-back">Volver</a>
+  </header>
+
+  <div class="card">
+    <h2>Crear usuario</h2>
+    <form (ngSubmit)="createStaff()" class="staff-form">
+      <input
+        type="text"
+        [(ngModel)]="fullName"
+        name="fullName"
+        required
+        placeholder="Nombre completo" />
+      <input
+        type="email"
+        [(ngModel)]="email"
+        name="email"
+        required
+        placeholder="correo@dominio.com" />
+      <input
+        type="password"
+        [(ngModel)]="password"
+        name="password"
+        required
+        placeholder="Contraseña temporal" />
+      <select [(ngModel)]="role" name="role">
+        <option value="Waiter">Waiter</option>
+        <option value="Kitchen">Kitchen</option>
+        <option value="Manager">Manager</option>
+        <option value="Admin">Admin</option>
+      </select>
+      <button type="submit" [disabled]="saving()">
+        {{ saving() ? 'Guardando...' : 'Crear usuario' }}
+      </button>
+    </form>
+    <p *ngIf="formError()" class="error">{{ formError() }}</p>
+  </div>
+
+  <div class="card">
+    <h2>Usuarios</h2>
+    <p *ngIf="loading()">Cargando...</p>
+    <p *ngIf="error()" class="error">{{ error() }}</p>
+
+    <table *ngIf="!loading() && !error()">
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Email</th>
+          <th>Rol</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let user of staff()">
+          <td>{{ user.fullName }}</td>
+          <td>{{ user.email }}</td>
+          <td>{{ user.role }}</td>
+          <td>{{ user.isActive ? 'Activo' : 'Inactivo' }}</td>
+          <td>
+            <button
+              [disabled]="saving() || !canManage(user)"
+              (click)="toggleActive(user)">
+              {{ user.isActive ? 'Desactivar' : 'Activar' }}
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

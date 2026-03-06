@@ -5,11 +5,36 @@
       <h1 class="logo">{{ restaurantName() || 'QrCafe' }} <span class="logo-accent">Cocina</span></h1>
       <span class="order-count">{{ orderCount }} órdenes</span>
     </div>
-    <a class="btn-products"
-       [routerLink]="['/products']"
-       [queryParams]="{ restaurantId: restaurantId }">
-      Productos
-    </a>
+    <div class="topbar-actions">
+      <a
+         *ngIf="canControlAvailability()"
+         class="btn-products"
+         [routerLink]="['/products']"
+         [queryParams]="{ restaurantId: restaurantId }">
+        Disponibilidad
+      </a>
+      <a
+         *ngIf="canManageProducts()"
+         class="btn-products"
+         [routerLink]="['/products-admin']"
+         [queryParams]="{ restaurantId: restaurantId }">
+        Productos Admin
+      </a>
+      <a class="btn-products"
+         [routerLink]="['/qr-codes']"
+         [queryParams]="{ restaurantId: restaurantId }">
+        QR Codes
+      </a>
+      <a
+        *ngIf="canManageStaff()"
+        class="btn-products"
+        [routerLink]="['/staff']">
+        Personal
+      </a>
+      <button class="btn-products" type="button" (click)="logout()">
+        Salir
+      </button>
+    </div>
   </header>
 
   <!-- Error state -->
