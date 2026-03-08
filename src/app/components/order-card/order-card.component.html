@@ -38,8 +38,19 @@
       </label>
 
       <span class="item-qty">{{ item.qty }}x</span>
-      <span class="item-name">{{ item.productName }}</span>
-      <span *ngIf="item.notes" class="item-notes">{{ item.notes }}</span>
+      <div class="item-content">
+        <span class="item-name">{{ item.productName }}</span>
+        <div *ngIf="item.notes as note" class="item-notes-wrap">
+          <span class="item-notes" [class.item-notes--expanded]="isNoteExpanded(i)">{{ note }}</span>
+          <button
+            *ngIf="shouldAllowNoteToggle(note)"
+            type="button"
+            class="btn-note-toggle"
+            (click)="toggleNote(i); $event.stopPropagation()">
+            {{ isNoteExpanded(i) ? 'ver menos' : 'ver más' }}
+          </button>
+        </div>
+      </div>
     </div>
 
     <button *ngIf="hasMoreItems && !itemsExpanded()"

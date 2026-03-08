@@ -18,6 +18,7 @@ export class OrderCardComponent {
   showCollectOptions = signal(false);
   itemsExpanded = signal(false);
   checkedItems = signal<Set<number>>(new Set());
+  expandedNotes = signal<Set<number>>(new Set());
 
   private readonly MAX_VISIBLE = 4;
 
@@ -165,6 +166,23 @@ export class OrderCardComponent {
       else next.add(index);
       return next;
     });
+  }
+
+  isNoteExpanded(index: number): boolean {
+    return this.expandedNotes().has(index);
+  }
+
+  toggleNote(index: number) {
+    this.expandedNotes.update(s => {
+      const next = new Set(s);
+      if (next.has(index)) next.delete(index);
+      else next.add(index);
+      return next;
+    });
+  }
+
+  shouldAllowNoteToggle(note: string | null | undefined): boolean {
+    return (note?.trim().length ?? 0) > 80;
   }
 
   formatMoney(value: number): string {

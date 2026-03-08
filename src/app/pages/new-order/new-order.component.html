@@ -51,6 +51,14 @@
             <div class="product-info">
               <span class="product-name">{{ p.name }}</span>
               <span class="product-price">${{ formatPrice(p.price) }}</span>
+              <div *ngIf="qtyOf(p.id) > 0" class="item-note-wrap">
+                <input
+                  type="text"
+                  class="item-note-input"
+                  placeholder="Nota para este producto (ej: sin cebolla)"
+                  [ngModel]="itemNotesOf(p.id)"
+                  (ngModelChange)="updateItemNotes(p.id, $event)" />
+              </div>
             </div>
 
             <div class="product-actions">

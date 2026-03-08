@@ -124,6 +124,16 @@ export class NewOrderComponent implements OnInit {
     });
   }
 
+  updateItemNotes(productId: string, notes: string) {
+    this.cart.update(c => c.map(i =>
+      i.product.id === productId ? { ...i, notes } : i
+    ));
+  }
+
+  itemNotesOf(productId: string): string {
+    return this.cart().find(i => i.product.id === productId)?.notes ?? '';
+  }
+
   formatPrice(price: number): string {
     return price.toLocaleString('es-CO', { minimumFractionDigits: 0 });
   }
