@@ -23,8 +23,13 @@ export class ProductsComponent implements OnInit {
   error = signal<string | null>(null);
   togglingId = signal<string | null>(null);
   saving = signal(false);
+  settingsSaving = signal(false);
   deletingId = signal<string | null>(null);
   editingId = signal<string | null>(null);
+  enableDineIn = signal(true);
+  enableDelivery = signal(false);
+  enableDeliveryCash = signal(true);
+  enableDeliveryCard = signal(true);
 
   newName = '';
   newDescription = '';
@@ -61,7 +66,13 @@ export class ProductsComponent implements OnInit {
     }
 
     this.restaurantService.getInfo(this.restaurantId).subscribe({
-      next: (info) => this.restaurantName.set(info.name)
+      next: (info) => {
+        this.restaurantName.set(info.name);
+        this.enableDineIn.set(info.enableDineIn);
+        this.enableDelivery.set(info.enableDelivery);
+        this.enableDeliveryCash.set(info.enableDeliveryCash);
+        this.enableDeliveryCard.set(info.enableDeliveryCard);
+      }
     });
 
     this.fetchProducts();
@@ -243,6 +254,72 @@ export class ProductsComponent implements OnInit {
     }
 
     return product.isAvailable ? 'Disponible' : 'No disponible';
+  }
+
+  canManageSettings(): boolean {
+    return this.adminPanel && this.authService.hasAnyRole(['admin', 'manager']);
+  }
+
+  onToggleDineIn(nextValue: boolean): void {
+    if (!this.canManageSettings() || this.settingsSaving()) return;
+
+    this.settingsSaving.set(true);
+    this.restaurantService.updateSettings(this.restaurantId, { enableDineIn: nextValue }).subscribe({
+      next: (info) => {
+        this.enableDineIn.set(info.enableDineIn);
+        this.enableDelivery.set(info.enableDelivery);
+        this.enableDeliveryCash.set(info.enableDeliveryCash);
+        this.enableDeliveryCard.set(info.enableDeliveryCard);
+        this.settingsSaving.set(false);
+      },
+      error: () => this.settingsSaving.set(false)
+    });
+  }
+
+  onToggleDelivery(nextValue: boolean): void {
+    if (!this.canManageSettings() || this.settingsSaving()) return;
+
+    this.settingsSaving.set(true);
+    this.restaurantService.updateSettings(this.restaurantId, { enableDelivery: nextValue }).subscribe({
+      next: (info) => {
+        this.enableDineIn.set(info.enableDineIn);
+        this.enableDelivery.set(info.enableDelivery);
+        this.enableDeliveryCash.set(info.enableDeliveryCash);
+        this.enableDeliveryCard.set(info.enableDeliveryCard);
+        this.settingsSaving.set(false);
+      },
+      error: () => this.settingsSaving.set(false)
+    });
+  }
+
+  onToggleDeliveryCash(nextValue: boolean): void {
+    if (!this.canManageSettings() || this.settingsSaving()) return;
+    this.settingsSaving.set(true);
+    this.restaurantService.updateSettings(this.restaurantId, { enableDeliveryCash: nextValue }).subscribe({
+      next: (info) => {
+        this.enableDineIn.set(info.enableDineIn);
+        this.enableDelivery.set(info.enableDelivery);
+        this.enableDeliveryCash.set(info.enableDeliveryCash);
+        this.enableDeliveryCard.set(info.enableDeliveryCard);
+        this.settingsSaving.set(false);
+      },
+      error: () => this.settingsSaving.set(false)
+    });
+  }
+
+  onToggleDeliveryCard(nextValue: boolean): void {
+    if (!this.canManageSettings() || this.settingsSaving()) return;
+    this.settingsSaving.set(true);
+    this.restaurantService.updateSettings(this.restaurantId, { enableDeliveryCard: nextValue }).subscribe({
+      next: (info) => {
+        this.enableDineIn.set(info.enableDineIn);
+        this.enableDelivery.set(info.enableDelivery);
+        this.enableDeliveryCash.set(info.enableDeliveryCash);
+        this.enableDeliveryCard.set(info.enableDeliveryCard);
+        this.settingsSaving.set(false);
+      },
+      error: () => this.settingsSaving.set(false)
+    });
   }
 
   private resetCreateForm() {

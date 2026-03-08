@@ -8,6 +8,7 @@ import { NewOrderComponent } from './pages/new-order/new-order.component';
 import { QrCodesComponent } from './pages/qr-codes/qr-codes.component';
 import { LoginComponent } from './pages/login/login.component';
 import { StaffComponent } from './pages/staff/staff.component';
+import { DeliveryComponent } from './pages/delivery/delivery.component';
 
 export const routes: Routes = [
   {
@@ -25,6 +26,12 @@ export const routes: Routes = [
     component: WaitersComponent,
     canActivate: [authGuard, roleGuard],
     data: { roles: ['waiter', 'admin', 'manager'] }
+  },
+  {
+    path: 'delivery',
+    component: DeliveryComponent,
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['delivery', 'admin', 'manager'] }
   },
   {
     path: 'products',

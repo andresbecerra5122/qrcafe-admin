@@ -28,6 +28,8 @@ export class DashboardComponent implements OnInit, OnDestroy {
   loading = signal(true);
   error = signal<string | null>(null);
   activeFilter = signal<string>('ACTIVE');
+  enableDineIn = signal(true);
+  enableDelivery = signal(false);
 
   filters: FilterTab[] = [
     { label: 'Activos',        value: 'ACTIVE',       statusCsv: 'CREATED,IN_PROGRESS,READY' },
@@ -58,7 +60,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
     }
 
     this.restaurantService.getInfo(this.restaurantId).subscribe({
-      next: (info) => this.restaurantName.set(info.name)
+      next: (info) => {
+        this.restaurantName.set(info.name);
+        this.enableDineIn.set(info.enableDineIn);
+        this.enableDelivery.set(info.enableDelivery);
+      }
     });
 
     this.fetchOrders();
@@ -122,6 +128,14 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   canControlAvailability(): boolean {
     return this.authService.hasAnyRole(['kitchen', 'admin', 'manager']);
+  }
+
+  canAccessWaiters(): boolean {
+    return this.enableDineIn() && this.authService.hasAnyRole(['waiter', 'admin', 'manager']);
+  }
+
+  canAccessDelivery(): boolean {
+    return this.enableDelivery() && this.authService.hasAnyRole(['delivery', 'admin', 'manager']);
   }
 
   logout(): void {

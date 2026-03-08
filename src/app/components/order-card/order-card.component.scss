@@ -11,6 +11,7 @@
   &[data-status='CREATED']         { @apply bg-amber-500; }
   &[data-status='IN_PROGRESS']     { @apply bg-orange-500; }
   &[data-status='READY']           { @apply bg-emerald-500; }
+  &[data-status='OUT_FOR_DELIVERY'] { @apply bg-sky-500; }
   &[data-status='DELIVERED']       { @apply bg-amber-300; }
   &[data-status='PAYMENT_PENDING'] { @apply bg-orange-400; }
   &[data-status='PAID']            { @apply bg-emerald-500; }
@@ -42,6 +43,10 @@
 
   &[data-type='TAKEAWAY'] {
     @apply bg-orange-50 text-orange-700 ring-1 ring-orange-200;
+  }
+
+  &[data-type='DELIVERY'] {
+    @apply bg-sky-50 text-sky-700 ring-1 ring-sky-200;
   }
 }
 
@@ -143,6 +148,10 @@
     @apply bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200;
   }
 
+  &[data-status='OUT_FOR_DELIVERY'] {
+    @apply bg-sky-50 text-sky-700 ring-1 ring-sky-200;
+  }
+
   &[data-status='DELIVERED'] {
     @apply bg-amber-50 text-amber-600 ring-1 ring-amber-200;
   }
@@ -162,6 +171,7 @@
 
   &[data-status='IN_PROGRESS'] { @apply bg-orange-500 hover:bg-orange-600; }
   &[data-status='READY']       { @apply bg-emerald-600 hover:bg-emerald-700; }
+  &[data-status='OUT_FOR_DELIVERY'] { @apply bg-sky-600 hover:bg-sky-700; }
   &[data-status='DELIVERED']   { @apply bg-amber-600 hover:bg-amber-700; }
   &[data-status='PAID']        { @apply bg-emerald-600 hover:bg-emerald-700; }
 

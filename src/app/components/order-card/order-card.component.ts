@@ -11,7 +11,7 @@ import { OpsOrder, OpsOrderItem } from '../../models/order.model';
 })
 export class OrderCardComponent {
   @Input({ required: true }) order!: OpsOrder;
-  @Input() mode: 'kitchen' | 'waiter' = 'kitchen';
+  @Input() mode: 'kitchen' | 'waiter' | 'delivery' = 'kitchen';
   @Output() statusChange = new EventEmitter<{ orderId: string; newStatus: string }>();
   @Output() collectOrder = new EventEmitter<{ orderId: string; paymentMethod: string }>();
 
@@ -45,7 +45,9 @@ export class OrderCardComponent {
   }
 
   get orderTypeLabel(): string {
-    return this.order.orderType === 'DINE_IN' ? 'Mesa' : 'Para llevar';
+    if (this.order.orderType === 'DINE_IN') return 'Mesa';
+    if (this.order.orderType === 'DELIVERY') return 'Delivery';
+    return 'Para llevar';
   }
 
   get tableLabel(): string {
@@ -62,6 +64,7 @@ export class OrderCardComponent {
       CREATED: 'Nuevo',
       IN_PROGRESS: 'En preparación',
       READY: 'Listo',
+      OUT_FOR_DELIVERY: 'En reparto',
       DELIVERED: 'Entregado',
       PAYMENT_PENDING: 'Pago pendiente',
       PAID: 'Pagado',
@@ -77,11 +80,17 @@ export class OrderCardComponent {
         case 'IN_PROGRESS':  return { label: 'Listo', status: 'READY' };
         default:             return null;
       }
-    } else {
+    } else if (this.mode === 'waiter') {
       switch (this.order.status) {
         case 'READY':           return { label: 'Entregado', status: 'DELIVERED' };
         case 'PAYMENT_PENDING': return { label: 'Cobrado', status: 'PAID' };
         default:                return null;
+      }
+    } else {
+      switch (this.order.status) {
+        case 'READY': return { label: 'Salir a reparto', status: 'OUT_FOR_DELIVERY' };
+        case 'OUT_FOR_DELIVERY': return { label: 'Entregado', status: 'DELIVERED' };
+        default: return null;
       }
     }
   }
@@ -95,6 +104,11 @@ export class OrderCardComponent {
 
   get showCollectBtn(): boolean {
     return this.mode === 'waiter' && this.order.status === 'DELIVERED';
+  }
+
+  get hasDeliveryInfo(): boolean {
+    return this.order.orderType === 'DELIVERY'
+      && (!!this.order.deliveryAddress || !!this.order.deliveryPhone || !!this.order.deliveryReference);
   }
 
   onAdvance() {

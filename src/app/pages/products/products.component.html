@@ -12,6 +12,51 @@
     </a>
   </header>
 
+  <section *ngIf="canManageSettings()" class="settings-card">
+    <h2 class="create-title">Modos del restaurante</h2>
+    <div class="settings-grid">
+      <label class="setting-item">
+        <input
+          type="checkbox"
+          [checked]="enableDineIn()"
+          [disabled]="settingsSaving()"
+          (change)="onToggleDineIn($any($event.target).checked)" />
+        <span>Mesas / Meseros</span>
+      </label>
+
+      <div class="delivery-settings">
+        <label class="setting-item">
+          <input
+            type="checkbox"
+            [checked]="enableDelivery()"
+            [disabled]="settingsSaving()"
+            (change)="onToggleDelivery($any($event.target).checked)" />
+          <span>Domicilio</span>
+        </label>
+
+        <div class="delivery-subitems" [class.delivery-subitems--disabled]="!enableDelivery()">
+          <label class="setting-item setting-item--sub">
+            <input
+              type="checkbox"
+              [checked]="enableDeliveryCash()"
+              [disabled]="settingsSaving() || !enableDelivery()"
+              (change)="onToggleDeliveryCash($any($event.target).checked)" />
+            <span>Efectivo</span>
+          </label>
+
+          <label class="setting-item setting-item--sub">
+            <input
+              type="checkbox"
+              [checked]="enableDeliveryCard()"
+              [disabled]="settingsSaving() || !enableDelivery()"
+              (change)="onToggleDeliveryCard($any($event.target).checked)" />
+            <span>Tarjeta</span>
+          </label>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <section *ngIf="adminPanel" class="create-card">
     <h2 class="create-title">Agregar producto</h2>
     <div class="create-grid">

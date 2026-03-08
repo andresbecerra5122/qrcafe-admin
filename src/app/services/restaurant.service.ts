@@ -7,6 +7,10 @@ export interface RestaurantInfo {
   id: string;
   name: string;
   currency: string;
+  enableDineIn: boolean;
+  enableDelivery: boolean;
+  enableDeliveryCash: boolean;
+  enableDeliveryCard: boolean;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -23,5 +27,24 @@ export class RestaurantService {
     return this.http
       .get<RestaurantInfo>(`${this.baseUrl}/ops/restaurant?restaurantId=${restaurantId}`)
       .pipe(tap(info => this.cache.set(restaurantId, info)));
+  }
+
+  updateSettings(
+    restaurantId: string,
+    payload: {
+      enableDineIn?: boolean;
+      enableDelivery?: boolean;
+      enableDeliveryCash?: boolean;
+      enableDeliveryCard?: boolean;
+    }
+  ): Observable<RestaurantInfo> {
+    return this.http
+      .patch<RestaurantInfo>(`${this.baseUrl}/ops/restaurant/settings?restaurantId=${restaurantId}`, payload)
+      .pipe(tap(info => {
+        const current = this.cache.get(restaurantId);
+        if (current) {
+          this.cache.set(restaurantId, { ...current, ...info });
+        }
+      }));
   }
 }

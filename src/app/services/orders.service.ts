@@ -6,9 +6,13 @@ import { OpsOrder } from '../models/order.model';
 
 export interface CreateOpsOrderRequest {
   restaurantId: string;
+  orderType?: string;
   tableNumber?: number;
   customerName?: string;
   notes?: string;
+  deliveryAddress?: string;
+  deliveryReference?: string;
+  deliveryPhone?: string;
   items: { productId: string; qty: number; notes?: string }[];
 }
 
@@ -18,10 +22,13 @@ export class OrdersService {
 
   constructor(private http: HttpClient) {}
 
-  getOrders(restaurantId: string, statusFilter?: string): Observable<OpsOrder[]> {
+  getOrders(restaurantId: string, statusFilter?: string, orderTypeFilter?: string): Observable<OpsOrder[]> {
     let url = `${this.baseUrl}/ops/orders?restaurantId=${restaurantId}`;
     if (statusFilter) {
       url += `&status=${statusFilter}`;
+    }
+    if (orderTypeFilter) {
+      url += `&orderType=${orderTypeFilter}`;
     }
     return this.http.get<OpsOrder[]>(url);
   }

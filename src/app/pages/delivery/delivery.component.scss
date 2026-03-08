@@ -1,0 +1,75 @@
+.delivery-page {
+  @apply max-w-6xl mx-auto px-4 sm:px-6 py-6 space-y-6;
+}
+
+.topbar {
+  @apply bg-white rounded-2xl px-6 py-4 shadow-sm border border-orange-100/80 flex items-center justify-between flex-wrap gap-3;
+}
+
+.topbar-left {
+  @apply flex items-center gap-3;
+}
+
+.topbar-actions {
+  @apply flex items-center gap-2;
+}
+
+.logo {
+  @apply text-2xl font-extrabold tracking-tight text-stone-900;
+}
+
+.logo-accent {
+  @apply text-amber-600;
+}
+
+.order-count {
+  @apply text-sm font-medium bg-orange-50 text-amber-700 rounded-full px-3 py-1;
+}
+
+.btn-products {
+  @apply text-sm font-semibold text-amber-700 bg-orange-50 hover:bg-orange-100 px-4 py-2 rounded-xl transition-colors no-underline;
+}
+
+.error-card {
+  @apply bg-red-50 text-red-700 rounded-2xl p-6 ring-1 ring-red-200 font-semibold;
+}
+
+.filter-bar {
+  @apply bg-white border border-orange-100 rounded-2xl p-2 flex gap-2 flex-wrap;
+}
+
+.filter-tab {
+  @apply px-4 py-2 rounded-xl text-sm font-semibold text-stone-500 hover:text-amber-700 hover:bg-orange-50 transition-colors;
+}
+
+.filter-tab.active {
+  @apply bg-amber-500 text-white shadow;
+}
+
+.loading {
+  @apply text-center py-20 text-stone-400 space-y-2;
+}
+
+.loading-icon {
+  @apply text-4xl;
+}
+
+.empty {
+  @apply text-center py-20 space-y-2;
+}
+
+.empty-icon {
+  @apply mx-auto w-16 h-16 rounded-full bg-orange-100 text-amber-600 flex items-center justify-center text-2xl font-bold;
+}
+
+.empty-title {
+  @apply text-lg font-bold text-stone-400 mt-3;
+}
+
+.empty-sub {
+  @apply text-sm text-stone-400;
+}
+
+.order-grid {
+  @apply grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4;
+}

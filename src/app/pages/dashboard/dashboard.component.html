@@ -14,6 +14,20 @@
         Disponibilidad
       </a>
       <a
+         *ngIf="canAccessWaiters()"
+         class="btn-products"
+         [routerLink]="['/waiters']"
+         [queryParams]="{ restaurantId: restaurantId }">
+        Meseros
+      </a>
+      <a
+         *ngIf="canAccessDelivery()"
+         class="btn-products"
+         [routerLink]="['/delivery']"
+         [queryParams]="{ restaurantId: restaurantId }">
+        Delivery
+      </a>
+      <a
          *ngIf="canManageProducts()"
          class="btn-products"
          [routerLink]="['/products-admin']"

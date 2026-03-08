@@ -22,6 +22,8 @@ export class QrCodesComponent implements OnInit {
   tables = signal<OpsTable[]>([]);
   loading = signal(true);
   error = signal<string | null>(null);
+  enableDineIn = signal(true);
+  enableDelivery = signal(false);
 
   menuBaseUrl = '';
 
@@ -45,10 +47,19 @@ export class QrCodesComponent implements OnInit {
     }
 
     this.restaurantService.getInfo(this.restaurantId).subscribe({
-      next: (info) => this.restaurantName.set(info.name)
+      next: (info) => {
+        this.restaurantName.set(info.name);
+        this.enableDineIn.set(info.enableDineIn);
+        this.enableDelivery.set(info.enableDelivery);
+        if (info.enableDineIn) {
+          this.fetchTables();
+        } else {
+          this.loading.set(false);
+          this.tables.set([]);
+          this.error.set(null);
+        }
+      }
     });
-
-    this.fetchTables();
   }
 
   fetchTables() {
@@ -67,6 +78,10 @@ export class QrCodesComponent implements OnInit {
 
   getQrUrl(table: OpsTable): string {
     return `${this.menuBaseUrl}/menu?restaurantId=${this.restaurantId}&table=${table.token}`;
+  }
+
+  getDeliveryQrUrl(): string {
+    return `${this.menuBaseUrl}/menu?restaurantId=${this.restaurantId}&mode=delivery`;
   }
 
   printQrs() {

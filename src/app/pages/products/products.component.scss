@@ -34,6 +34,38 @@
   @apply bg-white rounded-2xl p-4 sm:p-5 border border-orange-100/80 shadow-sm space-y-3;
 }
 
+.settings-card {
+  @apply bg-white rounded-2xl p-4 sm:p-5 border border-orange-100/80 shadow-sm space-y-3;
+}
+
+.settings-grid {
+  @apply flex flex-col gap-3;
+}
+
+.delivery-settings {
+  @apply flex flex-col gap-2;
+}
+
+.delivery-subitems {
+  @apply flex flex-wrap gap-2 pl-6;
+}
+
+.delivery-subitems--disabled {
+  @apply opacity-60;
+}
+
+.setting-item {
+  @apply inline-flex items-center gap-2 text-sm font-semibold text-stone-700 bg-orange-50 px-3 py-2 rounded-xl;
+}
+
+.setting-item--sub {
+  @apply bg-stone-50 text-stone-600;
+}
+
+.setting-item input[type='checkbox'] {
+  @apply accent-amber-600;
+}
+
 .create-title {
   @apply text-base font-bold text-stone-800;
 }

@@ -31,6 +31,7 @@ export class WaitersComponent implements OnInit, OnDestroy {
   loading = signal(true);
   error = signal<string | null>(null);
   activeFilter = signal<string>('ACTIVE');
+  private readonly orderTypeFilter = 'DINE_IN,TAKEAWAY';
 
   filters: FilterTab[] = [
     { label: 'Activos',     value: 'ACTIVE',          statusCsv: 'CREATED,IN_PROGRESS,READY,DELIVERED,PAYMENT_PENDING' },
@@ -89,7 +90,7 @@ export class WaitersComponent implements OnInit, OnDestroy {
     const filter = this.filters.find(f => f.value === this.activeFilter());
     const statusCsv = filter?.statusCsv ?? undefined;
 
-    this.ordersService.getOrders(this.restaurantId, statusCsv).subscribe({
+    this.ordersService.getOrders(this.restaurantId, statusCsv, this.orderTypeFilter).subscribe({
       next: (list) => {
         this.orders.set(list);
         this.loading.set(false);

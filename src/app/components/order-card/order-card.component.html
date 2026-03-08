@@ -18,6 +18,11 @@
 
   <!-- Customer -->
   <div *ngIf="order.customerName" class="customer">{{ order.customerName }}</div>
+  <div *ngIf="hasDeliveryInfo" class="customer">
+    <div *ngIf="order.deliveryAddress"><strong>Direccion:</strong> {{ order.deliveryAddress }}</div>
+    <div *ngIf="order.deliveryReference"><strong>Referencia:</strong> {{ order.deliveryReference }}</div>
+    <div *ngIf="order.deliveryPhone"><strong>Telefono:</strong> {{ order.deliveryPhone }}</div>
+  </div>
 
   <!-- Order items -->
   <div class="items-section" *ngIf="order.items?.length">

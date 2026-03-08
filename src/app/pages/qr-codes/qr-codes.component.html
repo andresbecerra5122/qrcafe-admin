@@ -3,7 +3,7 @@
   <header class="topbar no-print">
     <div class="topbar-left">
       <h1 class="logo">{{ restaurantName() || 'QrCafe' }} <span class="logo-accent">QR Codes</span></h1>
-      <span class="table-count">{{ tables().length }} mesas</span>
+      <span class="table-count">{{ enableDineIn() ? tables().length : 0 }} mesas</span>
     </div>
     <div class="topbar-actions">
       <a class="btn-back"
@@ -11,7 +11,7 @@
          [queryParams]="{ restaurantId: restaurantId }">
         Volver a Cocina
       </a>
-      <button class="btn-print" (click)="printQrs()" [disabled]="tables().length === 0">
+      <button class="btn-print" (click)="printQrs()" [disabled]="tables().length === 0 && !enableDelivery()">
         Imprimir QRs
       </button>
     </div>
@@ -44,14 +44,27 @@
   </div>
 
   <!-- Empty -->
-  <div *ngIf="!loading() && !error() && tables().length === 0" class="empty no-print">
+  <div *ngIf="!loading() && !error() && !enableDelivery() && tables().length === 0" class="empty no-print">
     <div class="empty-icon">&#128269;</div>
     <p class="empty-title">Sin mesas</p>
     <p class="empty-sub">No hay mesas activas para este restaurante.</p>
   </div>
 
+  <div *ngIf="!loading() && enableDelivery()" class="qr-grid">
+    <div class="qr-card">
+      <div class="qr-card-header">Delivery</div>
+      <qrcode
+        [qrdata]="getDeliveryQrUrl()"
+        [width]="200"
+        [errorCorrectionLevel]="'M'"
+        [elementType]="'canvas'">
+      </qrcode>
+      <p class="qr-card-url no-print">{{ getDeliveryQrUrl() }}</p>
+    </div>
+  </div>
+
   <!-- QR Grid -->
-  <div *ngIf="!loading() && tables().length > 0" class="qr-grid">
+  <div *ngIf="!loading() && enableDineIn() && tables().length > 0" class="qr-grid">
     <div *ngFor="let t of tables()" class="qr-card">
       <div class="qr-card-header">Mesa {{ t.number }}</div>
       <qrcode

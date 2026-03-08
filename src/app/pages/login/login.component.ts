@@ -37,7 +37,8 @@ export class LoginComponent {
           return;
         }
 
-        this.router.navigate(['/dashboard'], {
+        const targetPath = user.role?.toLowerCase() === 'delivery' ? '/delivery' : '/dashboard';
+        this.router.navigate([targetPath], {
           queryParams: { restaurantId: user.restaurantId }
         });
       },

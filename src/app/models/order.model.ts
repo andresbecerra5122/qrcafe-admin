@@ -9,6 +9,9 @@ export interface OpsOrder {
   orderType: string;
   tableNumber: number | null;
   customerName: string | null;
+  deliveryAddress: string | null;
+  deliveryReference: string | null;
+  deliveryPhone: string | null;
   status: string;
   paymentMethod: string | null;
   paymentRequestedAt: string | null;
