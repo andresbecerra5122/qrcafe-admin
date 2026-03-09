@@ -37,7 +37,13 @@ export class LoginComponent {
           return;
         }
 
-        const targetPath = user.role?.toLowerCase() === 'delivery' ? '/delivery' : '/dashboard';
+        const role = user.role?.toLowerCase();
+        if (role === 'superadmin') {
+          this.router.navigate(['/platform/onboarding']);
+          return;
+        }
+
+        const targetPath = role === 'delivery' ? '/delivery' : '/dashboard';
         this.router.navigate([targetPath], {
           queryParams: { restaurantId: user.restaurantId }
         });

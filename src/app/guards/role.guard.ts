@@ -11,6 +11,10 @@ export const roleGuard: CanActivateFn = (route) => {
     return true;
   }
 
+  if (auth.hasAnyRole(['superadmin'])) {
+    return router.createUrlTree(['/platform/onboarding']);
+  }
+
   const restaurantId = auth.getRestaurantId();
   return router.createUrlTree(['/dashboard'], {
     queryParams: restaurantId ? { restaurantId } : {}

@@ -1,0 +1,132 @@
+<div class="page">
+  <header class="topbar">
+    <div>
+      <h1>Platform Onboarding</h1>
+      <p>Crea un nuevo restaurante con admin, staff y menú inicial.</p>
+    </div>
+    <div class="actions">
+      <button type="button" class="btn-secondary" (click)="logout()">Salir</button>
+    </div>
+  </header>
+
+  <form class="card stack" (ngSubmit)="submit()">
+    <h2>Restaurante</h2>
+    <div class="grid grid-3">
+      <label>
+        <span>Nombre</span>
+        <input [(ngModel)]="model.name" name="name" (blur)="suggestSlug()" required />
+      </label>
+      <label>
+        <span>Slug</span>
+        <input [(ngModel)]="model.slug" name="slug" required />
+      </label>
+      <label>
+        <span>Mesas iniciales</span>
+        <input type="number" min="0" [(ngModel)]="model.initialTablesCount" name="initialTablesCount" />
+      </label>
+    </div>
+
+    <div class="grid grid-4">
+      <label>
+        <span>País</span>
+        <input [(ngModel)]="model.countryCode" name="countryCode" />
+      </label>
+      <label>
+        <span>Moneda</span>
+        <input [(ngModel)]="model.currency" name="currency" />
+      </label>
+      <label>
+        <span>Zona horaria</span>
+        <input [(ngModel)]="model.timeZone" name="timeZone" />
+      </label>
+      <label>
+        <span>Impuesto (0..1)</span>
+        <input type="number" min="0" max="1" step="0.01" [(ngModel)]="model.taxRate" name="taxRate" />
+      </label>
+    </div>
+
+    <div class="checks">
+      <label><input type="checkbox" [(ngModel)]="model.enableDineIn" name="enableDineIn" /> Dine-in</label>
+      <label><input type="checkbox" [(ngModel)]="model.enableDelivery" name="enableDelivery" /> Delivery</label>
+      <label><input type="checkbox" [(ngModel)]="model.enableDeliveryCash" name="enableDeliveryCash" /> Delivery Cash</label>
+      <label><input type="checkbox" [(ngModel)]="model.enableDeliveryCard" name="enableDeliveryCard" /> Delivery Card</label>
+    </div>
+
+    <h2>Admin inicial</h2>
+    <div class="grid grid-3">
+      <label>
+        <span>Nombre</span>
+        <input [(ngModel)]="model.adminFullName" name="adminFullName" required />
+      </label>
+      <label>
+        <span>Email</span>
+        <input type="email" [(ngModel)]="model.adminEmail" name="adminEmail" required />
+      </label>
+      <label>
+        <span>Password temporal</span>
+        <input [(ngModel)]="model.adminPassword" name="adminPassword" required />
+      </label>
+    </div>
+
+    <h2>Staff opcional</h2>
+    <button type="button" class="btn-secondary" (click)="addStaffUser()">+ Agregar staff</button>
+    <div *ngFor="let s of model.staffUsers; let i = index" class="card subcard">
+      <div class="grid grid-4">
+        <label><span>Nombre</span><input [(ngModel)]="s.fullName" [name]="'staffName' + i" /></label>
+        <label><span>Email</span><input [(ngModel)]="s.email" [name]="'staffEmail' + i" /></label>
+        <label><span>Password</span><input [(ngModel)]="s.password" [name]="'staffPassword' + i" /></label>
+        <label>
+          <span>Rol</span>
+          <select [(ngModel)]="s.role" [name]="'staffRole' + i">
+            <option value="Waiter">Waiter</option>
+            <option value="Kitchen">Kitchen</option>
+            <option value="Delivery">Delivery</option>
+            <option value="Manager">Manager</option>
+            <option value="Admin">Admin</option>
+          </select>
+        </label>
+      </div>
+      <button type="button" class="btn-danger" (click)="removeStaffUser(i)">Eliminar</button>
+    </div>
+
+    <h2>Categorías y productos (opcional)</h2>
+    <button type="button" class="btn-secondary" (click)="addCategory()">+ Agregar categoría</button>
+    <div *ngFor="let c of model.categories; let ci = index" class="card subcard">
+      <div class="grid grid-2">
+        <label><span>Categoría</span><input [(ngModel)]="c.name" [name]="'catName' + ci" /></label>
+        <label><span>Sort</span><input type="number" [(ngModel)]="c.sort" [name]="'catSort' + ci" /></label>
+      </div>
+
+      <button type="button" class="btn-secondary" (click)="addProduct(c)">+ Agregar producto</button>
+      <div *ngFor="let p of c.products; let pi = index" class="card mini">
+        <div class="grid grid-4">
+          <label><span>Nombre</span><input [(ngModel)]="p.name" [name]="'prodName' + ci + '_' + pi" /></label>
+          <label><span>Precio</span><input type="number" min="0" [(ngModel)]="p.price" [name]="'prodPrice' + ci + '_' + pi" /></label>
+          <label><span>Sort</span><input type="number" [(ngModel)]="p.sort" [name]="'prodSort' + ci + '_' + pi" /></label>
+          <label><span>Imagen URL</span><input [(ngModel)]="p.imageUrl" [name]="'prodImage' + ci + '_' + pi" /></label>
+        </div>
+        <label><span>Descripción</span><input [(ngModel)]="p.description" [name]="'prodDesc' + ci + '_' + pi" /></label>
+        <div class="checks">
+          <label><input type="checkbox" [(ngModel)]="p.isActive" [name]="'prodActive' + ci + '_' + pi" /> IsActive</label>
+          <label><input type="checkbox" [(ngModel)]="p.isAvailable" [name]="'prodAvail' + ci + '_' + pi" /> IsAvailable</label>
+        </div>
+        <button type="button" class="btn-danger" (click)="removeProduct(c, pi)">Eliminar producto</button>
+      </div>
+
+      <button type="button" class="btn-danger" (click)="removeCategory(ci)">Eliminar categoría</button>
+    </div>
+
+    <div *ngIf="error()" class="error">{{ error() }}</div>
+    <div *ngIf="success() as result" class="success">
+      Restaurante creado: <strong>{{ result.name }}</strong> ({{ result.restaurantId }})<br />
+      Slug: <strong>{{ result.slug }}</strong> | Admin: <strong>{{ result.adminEmail }}</strong><br />
+      Staff: {{ result.staffUsersCreated }} | Categorías: {{ result.categoriesCreated }} | Productos: {{ result.productsCreated }} | Mesas: {{ result.tablesCreated }}
+    </div>
+
+    <div class="submit-row">
+      <button type="submit" class="btn-primary" [disabled]="loading()">
+        {{ loading() ? 'Creando...' : 'Crear restaurante' }}
+      </button>
+    </div>
+  </form>
+</div>

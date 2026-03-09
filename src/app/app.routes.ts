@@ -9,6 +9,7 @@ import { QrCodesComponent } from './pages/qr-codes/qr-codes.component';
 import { LoginComponent } from './pages/login/login.component';
 import { StaffComponent } from './pages/staff/staff.component';
 import { DeliveryComponent } from './pages/delivery/delivery.component';
+import { PlatformOnboardingComponent } from './pages/platform-onboarding/platform-onboarding.component';
 
 export const routes: Routes = [
   {
@@ -62,6 +63,12 @@ export const routes: Routes = [
     component: StaffComponent,
     canActivate: [authGuard, roleGuard],
     data: { roles: ['admin', 'manager'] }
+  },
+  {
+    path: 'platform/onboarding',
+    component: PlatformOnboardingComponent,
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['superadmin'] }
   },
   {
     path: '',
