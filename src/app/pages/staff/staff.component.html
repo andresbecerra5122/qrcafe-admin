@@ -39,6 +39,35 @@
   </div>
 
   <div class="card">
+    <h2>Mi contraseña</h2>
+    <form (ngSubmit)="changeMyPassword()" class="password-form">
+      <input
+        type="password"
+        [(ngModel)]="currentPassword"
+        name="currentPassword"
+        required
+        placeholder="Contraseña actual" />
+      <input
+        type="password"
+        [(ngModel)]="newPassword"
+        name="newPassword"
+        required
+        placeholder="Nueva contraseña (mínimo 8 caracteres)" />
+      <input
+        type="password"
+        [(ngModel)]="confirmPassword"
+        name="confirmPassword"
+        required
+        placeholder="Confirmar nueva contraseña" />
+      <button type="submit" [disabled]="changingPassword()">
+        {{ changingPassword() ? 'Actualizando...' : 'Cambiar contraseña' }}
+      </button>
+    </form>
+    <p *ngIf="passwordError()" class="error">{{ passwordError() }}</p>
+    <p *ngIf="passwordSuccess()" class="success">{{ passwordSuccess() }}</p>
+  </div>
+
+  <div class="card">
     <h2>Usuarios</h2>
     <p *ngIf="loading()">Cargando...</p>
     <p *ngIf="error()" class="error">{{ error() }}</p>
@@ -54,20 +83,56 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let user of staff()">
-          <td>{{ user.fullName }}</td>
-          <td>{{ user.email }}</td>
-          <td>{{ user.role }}</td>
-          <td>{{ user.isActive ? 'Activo' : 'Inactivo' }}</td>
-          <td>
-            <button
-              [disabled]="saving() || !canManage(user)"
-              (click)="toggleActive(user)">
-              {{ user.isActive ? 'Desactivar' : 'Activar' }}
-            </button>
-          </td>
-        </tr>
+        <ng-container *ngFor="let user of staff()">
+          <tr>
+            <td>{{ user.fullName }}</td>
+            <td>{{ user.email }}</td>
+            <td>{{ user.role }}</td>
+            <td>{{ user.isActive ? 'Activo' : 'Inactivo' }}</td>
+            <td>
+              <button
+                [disabled]="saving() || !canManage(user)"
+                (click)="toggleActive(user)">
+                {{ user.isActive ? 'Desactivar' : 'Activar' }}
+              </button>
+              <button
+                [disabled]="saving() || !canManage(user)"
+                (click)="startResetPassword(user)">
+                Cambiar contraseña
+              </button>
+            </td>
+          </tr>
+          <tr *ngIf="resettingUserId() === user.id" class="reset-row">
+            <td colspan="5">
+              <div class="reset-box">
+                <h3>Actualizar contraseña de {{ user.fullName }}</h3>
+                <div class="reset-form">
+                  <input
+                    type="password"
+                    [(ngModel)]="resetPasswordValue"
+                    name="resetPasswordValue"
+                    placeholder="Nueva contraseña (mínimo 8 caracteres)" />
+                  <button
+                    type="button"
+                    [disabled]="saving()"
+                    (click)="saveResetPasswordById(user.id)">
+                    Guardar contraseña
+                  </button>
+                  <button
+                    type="button"
+                    [disabled]="saving()"
+                    (click)="cancelResetPassword()">
+                    Cancelar
+                  </button>
+                </div>
+              </div>
+            </td>
+          </tr>
+        </ng-container>
       </tbody>
     </table>
+
+    <p *ngIf="resetError()" class="error">{{ resetError() }}</p>
+    <p *ngIf="resetSuccess()" class="success">{{ resetSuccess() }}</p>
   </div>
 </div>

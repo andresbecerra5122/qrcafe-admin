@@ -50,3 +50,11 @@ export interface CreateRestaurantOnboardingResponse {
   productsCreated: number;
   staffUsersCreated: number;
 }
+
+export interface PlatformRestaurantListItem {
+  restaurantId: string;
+  name: string;
+  slug: string;
+  isActive: boolean;
+  createdAt: string;
+}

@@ -31,6 +31,12 @@
   gap: 10px;
 }
 
+.password-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+}
+
 input, select, button {
   border: 1px solid #d1d5db;
   border-radius: 8px;
@@ -54,4 +60,27 @@ th, td {
 
 .error {
   color: #b91c1c;
+}
+
+.success {
+  color: #166534;
+}
+
+.reset-box {
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #f9fafb;
+}
+
+.reset-row td {
+  background: #f8fafc;
+}
+
+.reset-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
 }

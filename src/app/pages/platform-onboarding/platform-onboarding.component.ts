@@ -1,4 +1,4 @@
-import { Component, signal } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -8,7 +8,8 @@ import {
   CreateRestaurantOnboardingResponse,
   OnboardingCategoryRequest,
   OnboardingProductRequest,
-  OnboardingStaffUserRequest
+  OnboardingStaffUserRequest,
+  PlatformRestaurantListItem
 } from '../../models/platform-onboarding.model';
 import { AuthService } from '../../services/auth.service';
 
@@ -19,10 +20,14 @@ import { AuthService } from '../../services/auth.service';
   templateUrl: './platform-onboarding.component.html',
   styleUrl: './platform-onboarding.component.scss'
 })
-export class PlatformOnboardingComponent {
+export class PlatformOnboardingComponent implements OnInit {
   loading = signal(false);
   error = signal<string | null>(null);
   success = signal<CreateRestaurantOnboardingResponse | null>(null);
+  restaurants = signal<PlatformRestaurantListItem[]>([]);
+  restaurantsLoading = signal(true);
+  restaurantsError = signal<string | null>(null);
+  restaurantActionLoading = signal<string | null>(null);
 
   model: CreateRestaurantOnboardingRequest = {
     name: '',
@@ -47,6 +52,10 @@ export class PlatformOnboardingComponent {
     private readonly onboardingService: PlatformOnboardingService,
     private readonly authService: AuthService
   ) {}
+
+  ngOnInit(): void {
+    this.fetchRestaurants();
+  }
 
   suggestSlug(): void {
     if (!this.model.name?.trim()) return;
@@ -142,12 +151,47 @@ export class PlatformOnboardingComponent {
       next: (result) => {
         this.success.set(result);
         this.loading.set(false);
+        this.fetchRestaurants();
       },
       error: (err) => {
         this.error.set(err?.error?.error ?? err?.error?.detail ?? 'No se pudo crear el restaurante.');
         this.loading.set(false);
       }
     });
+  }
+
+  fetchRestaurants(): void {
+    this.restaurantsLoading.set(true);
+    this.restaurantsError.set(null);
+    this.onboardingService.getRestaurants().subscribe({
+      next: (items) => {
+        this.restaurants.set(items);
+        this.restaurantsLoading.set(false);
+      },
+      error: () => {
+        this.restaurantsError.set('No se pudo cargar la lista de restaurantes.');
+        this.restaurantsLoading.set(false);
+      }
+    });
+  }
+
+  toggleRestaurantStatus(item: PlatformRestaurantListItem): void {
+    if (this.restaurantActionLoading()) return;
+    this.restaurantActionLoading.set(item.restaurantId);
+    this.onboardingService.setRestaurantStatus(item.restaurantId, !item.isActive).subscribe({
+      next: () => {
+        this.restaurantActionLoading.set(null);
+        this.fetchRestaurants();
+      },
+      error: (err) => {
+        this.error.set(err?.error?.error ?? 'No se pudo actualizar el estado del restaurante.');
+        this.restaurantActionLoading.set(null);
+      }
+    });
+  }
+
+  formatDate(value: string): string {
+    return new Date(value).toLocaleString('es-CO');
   }
 
   logout(): void {

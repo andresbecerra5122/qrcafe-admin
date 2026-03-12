@@ -31,4 +31,11 @@ export class StaffService {
   }): Observable<StaffUser> {
     return this.http.patch<StaffUser>(`${this.baseUrl}/ops/staff/${staffId}`, payload);
   }
+
+  changeMyPassword(payload: {
+    currentPassword: string;
+    newPassword: string;
+  }): Observable<void> {
+    return this.http.patch<void>(`${this.baseUrl}/ops/staff/me/password`, payload);
+  }
 }

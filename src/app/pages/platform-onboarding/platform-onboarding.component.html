@@ -129,4 +129,39 @@
       </button>
     </div>
   </form>
+
+  <div class="card stack">
+    <h2>Restaurantes (control de cobro)</h2>
+    <p *ngIf="restaurantsLoading()">Cargando restaurantes...</p>
+    <p *ngIf="restaurantsError()" class="error">{{ restaurantsError() }}</p>
+
+    <table *ngIf="!restaurantsLoading() && !restaurantsError()">
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Slug</th>
+          <th>Estado</th>
+          <th>Creado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let r of restaurants()">
+          <td>{{ r.name }}</td>
+          <td>{{ r.slug }}</td>
+          <td>{{ r.isActive ? 'Activo' : 'Inactivo' }}</td>
+          <td>{{ formatDate(r.createdAt) }}</td>
+          <td>
+            <button
+              type="button"
+              class="btn-danger"
+              [disabled]="restaurantActionLoading() === r.restaurantId"
+              (click)="toggleRestaurantStatus(r)">
+              {{ r.isActive ? 'Desactivar' : 'Activar' }}
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 </div>
