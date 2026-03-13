@@ -133,7 +133,7 @@ export class OrderCardComponent {
   }
 
   get visibleItems(): OpsOrderItem[] {
-    const items = this.order.items ?? [];
+    const items = [...(this.order.items ?? [])].sort((a, b) => Number(a.isDone) - Number(b.isDone));
     if (this.itemsExpanded() || items.length <= this.MAX_VISIBLE) return items;
     return items.slice(0, this.MAX_VISIBLE);
   }
@@ -155,17 +155,24 @@ export class OrderCardComponent {
       && (this.order.status === 'IN_PROGRESS' || this.order.status === 'READY');
   }
 
-  isChecked(index: number): boolean {
-    return this.checkedItems().has(index);
+  isChecked(index: number, item?: OpsOrderItem): boolean {
+    return !!item?.isDone || this.checkedItems().has(index);
   }
 
-  toggleCheck(index: number) {
+  toggleCheck(index: number, item?: OpsOrderItem) {
+    if (item?.isDone) return;
     this.checkedItems.update(s => {
       const next = new Set(s);
       if (next.has(index)) next.delete(index);
       else next.add(index);
       return next;
     });
+  }
+
+  shouldShowDoneDivider(index: number, item: OpsOrderItem, items: OpsOrderItem[]): boolean {
+    if (this.mode !== 'kitchen' || !item.isDone) return false;
+    if (index === 0) return true;
+    return !items[index - 1]?.isDone;
   }
 
   isNoteExpanded(index: number): boolean {

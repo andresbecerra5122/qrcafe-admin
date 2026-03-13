@@ -26,32 +26,38 @@
 
   <!-- Order items -->
   <div class="items-section" *ngIf="order.items?.length">
-    <div *ngFor="let item of visibleItems; let i = index"
-         class="item-row"
-         [class.item-checked]="mode === 'kitchen' && isChecked(i)">
+    <ng-container *ngFor="let item of visibleItems; let i = index">
+      <div
+        *ngIf="shouldShowDoneDivider(i, item, visibleItems)"
+        class="items-divider">
+        Ya preparados/entregados
+      </div>
 
-      <label *ngIf="mode === 'kitchen'" class="item-checkbox" (click)="$event.stopPropagation()">
-        <input type="checkbox"
-               [checked]="isChecked(i)"
-               [disabled]="!checkboxesEnabled"
-               (change)="toggleCheck(i)" />
-      </label>
+      <div class="item-row" [class.item-checked]="mode === 'kitchen' && isChecked(i, item)">
+        <label *ngIf="mode === 'kitchen'" class="item-checkbox" (click)="$event.stopPropagation()">
+          <input type="checkbox"
+                 [checked]="isChecked(i, item)"
+                 [disabled]="!checkboxesEnabled || item.isDone"
+                 (change)="toggleCheck(i, item)" />
+        </label>
 
-      <span class="item-qty">{{ item.qty }}x</span>
-      <div class="item-content">
-        <span class="item-name">{{ item.productName }}</span>
-        <div *ngIf="item.notes as note" class="item-notes-wrap">
-          <span class="item-notes" [class.item-notes--expanded]="isNoteExpanded(i)">{{ note }}</span>
-          <button
-            *ngIf="shouldAllowNoteToggle(note)"
-            type="button"
-            class="btn-note-toggle"
-            (click)="toggleNote(i); $event.stopPropagation()">
-            {{ isNoteExpanded(i) ? 'ver menos' : 'ver más' }}
-          </button>
+        <span class="item-qty">{{ item.qty }}x</span>
+        <div class="item-content">
+          <span class="item-name">{{ item.productName }}</span>
+          <span *ngIf="mode === 'kitchen' && item.isDone" class="done-pill">Hecho</span>
+          <div *ngIf="item.notes as note" class="item-notes-wrap">
+            <span class="item-notes" [class.item-notes--expanded]="isNoteExpanded(i)">{{ note }}</span>
+            <button
+              *ngIf="shouldAllowNoteToggle(note)"
+              type="button"
+              class="btn-note-toggle"
+              (click)="toggleNote(i); $event.stopPropagation()">
+              {{ isNoteExpanded(i) ? 'ver menos' : 'ver más' }}
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+    </ng-container>
 
     <button *ngIf="hasMoreItems && !itemsExpanded()"
             class="btn-expand"

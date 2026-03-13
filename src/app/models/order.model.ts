@@ -2,6 +2,7 @@ export interface OpsOrderItem {
   productName: string;
   qty: number;
   notes: string | null;
+  isDone: boolean;
 }
 
 export interface OpsOrder {
