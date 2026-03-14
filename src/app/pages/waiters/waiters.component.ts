@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
 import { OrdersService } from '../../services/orders.service';
 import { WaiterCallsService } from '../../services/waiter-calls.service';
@@ -31,6 +31,7 @@ export class WaitersComponent implements OnInit, OnDestroy {
   loading = signal(true);
   error = signal<string | null>(null);
   activeFilter = signal<string>('ACTIVE');
+  waiterAlert = signal<string | null>(null);
   private readonly orderTypeFilter = 'DINE_IN,TAKEAWAY';
 
   filters: FilterTab[] = [
@@ -43,9 +44,13 @@ export class WaitersComponent implements OnInit, OnDestroy {
   ];
 
   private pollTimer: ReturnType<typeof setInterval> | null = null;
+  private readyOrderIds = new Set<string>();
+  private readyAlertInitialized = false;
+  private alertTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor(
     private route: ActivatedRoute,
+    private router: Router,
     private ordersService: OrdersService,
     private waiterCallsService: WaiterCallsService,
     private restaurantService: RestaurantService,
@@ -82,6 +87,7 @@ export class WaitersComponent implements OnInit, OnDestroy {
   fetchAll() {
     this.fetchOrders();
     this.fetchWaiterCalls();
+    this.checkReadyAlerts();
   }
 
   fetchOrders() {
@@ -130,6 +136,16 @@ export class WaitersComponent implements OnInit, OnDestroy {
     });
   }
 
+  onAddProducts(event: { orderId: string; tableNumber: number | null }) {
+    this.router.navigate(['/new-order'], {
+      queryParams: {
+        restaurantId: this.restaurantId,
+        tableNumber: event.tableNumber ?? undefined,
+        orderId: event.orderId
+      }
+    });
+  }
+
   attendCall(callId: string) {
     this.waiterCallsService.attend(callId).subscribe({
       next: () => this.fetchWaiterCalls(),
@@ -167,6 +183,61 @@ export class WaitersComponent implements OnInit, OnDestroy {
     if (this.pollTimer) {
       clearInterval(this.pollTimer);
       this.pollTimer = null;
+    }
+    if (this.alertTimer) {
+      clearTimeout(this.alertTimer);
+      this.alertTimer = null;
+    }
+  }
+
+  private checkReadyAlerts(): void {
+    this.ordersService.getOrders(this.restaurantId, 'READY', this.orderTypeFilter).subscribe({
+      next: (readyOrders) => {
+        const nextSet = new Set(readyOrders.map(o => o.orderId));
+        if (!this.readyAlertInitialized) {
+          this.readyOrderIds = nextSet;
+          this.readyAlertInitialized = true;
+          return;
+        }
+
+        const hasNewReady = readyOrders.some(o => !this.readyOrderIds.has(o.orderId));
+        this.readyOrderIds = nextSet;
+
+        if (hasNewReady) {
+          this.showWaiterAlert('Pedido listo para entregar');
+          this.playAlertTone();
+        }
+      }
+    });
+  }
+
+  private showWaiterAlert(message: string): void {
+    this.waiterAlert.set(message);
+    if (this.alertTimer) {
+      clearTimeout(this.alertTimer);
+    }
+    this.alertTimer = setTimeout(() => this.waiterAlert.set(null), 4500);
+  }
+
+  private playAlertTone(): void {
+    try {
+      const AudioContextCtor = window.AudioContext;
+      if (!AudioContextCtor) return;
+      const ctx = new AudioContextCtor();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(1046, ctx.currentTime);
+      gain.gain.setValueAtTime(0.001, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.12, ctx.currentTime + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.35);
+      osc.onended = () => void ctx.close();
+    } catch {
+      // Ignore sound errors (browser autoplay or device restrictions).
     }
   }
 }

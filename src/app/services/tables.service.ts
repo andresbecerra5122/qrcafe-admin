@@ -15,4 +15,11 @@ export class TablesService {
       `${this.baseUrl}/ops/tables?restaurantId=${restaurantId}`
     );
   }
+
+  updateActiveCount(restaurantId: string, activeCount: number): Observable<{ activeCount: number }> {
+    return this.http.patch<{ activeCount: number }>(
+      `${this.baseUrl}/ops/tables/active-count?restaurantId=${restaurantId}`,
+      { activeCount }
+    );
+  }
 }

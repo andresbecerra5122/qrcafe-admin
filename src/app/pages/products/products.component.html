@@ -24,6 +24,30 @@
         <span>Mesas / Meseros</span>
       </label>
 
+      <div class="tables-config">
+        <div class="tables-config__summary">
+          Mesas activas: <strong>{{ activeTablesCount() }}</strong>
+        </div>
+        <div class="tables-config__controls">
+          <input
+            type="number"
+            min="0"
+            max="200"
+            class="create-input tables-config__input"
+            [ngModel]="desiredTablesCount()"
+            [disabled]="tablesSaving()"
+            (ngModelChange)="onTablesCountInput($event)" />
+          <button
+            type="button"
+            class="btn-create"
+            [disabled]="tablesSaving() || desiredTablesCount() == null || desiredTablesCount() === activeTablesCount()"
+            (click)="saveTablesCount()">
+            {{ tablesSaving() ? 'Guardando...' : 'Guardar mesas' }}
+          </button>
+        </div>
+        <p *ngIf="tablesError()" class="tables-config__error">{{ tablesError() }}</p>
+      </div>
+
       <div class="delivery-settings">
         <label class="setting-item">
           <input

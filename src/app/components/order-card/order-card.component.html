@@ -102,6 +102,12 @@
     </div>
   </div>
 
+  <div *ngIf="showAddProductsBtn" class="collect-section">
+    <button class="btn-collect" (click)="onAddProducts()">
+      + Agregar productos
+    </button>
+  </div>
+
   <!-- Actions -->
   <div class="actions" *ngIf="nextAction || canCancel">
     <button *ngIf="nextAction" class="btn-advance" [attr.data-status]="nextAction.status" (click)="onAdvance()">

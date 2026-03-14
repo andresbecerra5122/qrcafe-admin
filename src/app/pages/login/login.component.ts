@@ -37,16 +37,13 @@ export class LoginComponent {
           return;
         }
 
-        const role = user.role?.toLowerCase();
-        if (role === 'superadmin') {
-          this.router.navigate(['/platform/onboarding']);
+        const targetPath = this.authService.getDefaultPathForCurrentRole();
+        if (targetPath === '/platform/onboarding') {
+          this.router.navigate([targetPath]);
           return;
         }
 
-        const targetPath = role === 'delivery' ? '/delivery' : '/dashboard';
-        this.router.navigate([targetPath], {
-          queryParams: { restaurantId: user.restaurantId }
-        });
+        this.router.navigate([targetPath], { queryParams: { restaurantId: user.restaurantId } });
       },
       error: (err) => {
         const message = err?.error?.error ?? 'Credenciales inválidas.';

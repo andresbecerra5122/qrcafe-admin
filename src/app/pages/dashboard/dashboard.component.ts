@@ -30,6 +30,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   activeFilter = signal<string>('ACTIVE');
   enableDineIn = signal(true);
   enableDelivery = signal(false);
+  kitchenAlert = signal<string | null>(null);
 
   filters: FilterTab[] = [
     { label: 'Activos',        value: 'ACTIVE',       statusCsv: 'CREATED,IN_PROGRESS,READY' },
@@ -41,6 +42,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
   ];
 
   private pollTimer: ReturnType<typeof setInterval> | null = null;
+  private createdOrderIds = new Set<string>();
+  private createdAlertInitialized = false;
+  private alertTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor(
     private route: ActivatedRoute,
@@ -91,6 +95,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.orders.set(list);
         this.loading.set(false);
         this.error.set(null);
+        this.checkKitchenAlerts();
       },
       error: () => {
         if (this.loading()) {
@@ -146,6 +151,61 @@ export class DashboardComponent implements OnInit, OnDestroy {
     if (this.pollTimer) {
       clearInterval(this.pollTimer);
       this.pollTimer = null;
+    }
+    if (this.alertTimer) {
+      clearTimeout(this.alertTimer);
+      this.alertTimer = null;
+    }
+  }
+
+  private checkKitchenAlerts(): void {
+    this.ordersService.getOrders(this.restaurantId, 'CREATED').subscribe({
+      next: (createdOrders) => {
+        const nextSet = new Set(createdOrders.map(o => o.orderId));
+        if (!this.createdAlertInitialized) {
+          this.createdOrderIds = nextSet;
+          this.createdAlertInitialized = true;
+          return;
+        }
+
+        const hasNewCreated = createdOrders.some(o => !this.createdOrderIds.has(o.orderId));
+        this.createdOrderIds = nextSet;
+
+        if (hasNewCreated) {
+          this.showKitchenAlert('Nuevo pedido en cocina');
+          this.playAlertTone();
+        }
+      }
+    });
+  }
+
+  private showKitchenAlert(message: string): void {
+    this.kitchenAlert.set(message);
+    if (this.alertTimer) {
+      clearTimeout(this.alertTimer);
+    }
+    this.alertTimer = setTimeout(() => this.kitchenAlert.set(null), 4500);
+  }
+
+  private playAlertTone(): void {
+    try {
+      const AudioContextCtor = window.AudioContext;
+      if (!AudioContextCtor) return;
+      const ctx = new AudioContextCtor();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(880, ctx.currentTime);
+      gain.gain.setValueAtTime(0.001, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.12, ctx.currentTime + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.35);
+      osc.onended = () => void ctx.close();
+    } catch {
+      // Ignore sound errors (browser autoplay or device restrictions).
     }
   }
 }

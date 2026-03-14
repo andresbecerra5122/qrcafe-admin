@@ -15,8 +15,13 @@ export const roleGuard: CanActivateFn = (route) => {
     return router.createUrlTree(['/platform/onboarding']);
   }
 
+  const defaultPath = auth.getDefaultPathForCurrentRole();
+  if (defaultPath === '/platform/onboarding') {
+    return router.createUrlTree([defaultPath]);
+  }
+
   const restaurantId = auth.getRestaurantId();
-  return router.createUrlTree(['/dashboard'], {
+  return router.createUrlTree([defaultPath], {
     queryParams: restaurantId ? { restaurantId } : {}
   });
 };

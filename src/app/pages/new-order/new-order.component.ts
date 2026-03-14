@@ -14,6 +14,11 @@ interface CartItem {
   notes: string;
 }
 
+interface ProductGroup {
+  category: string;
+  items: OpsProduct[];
+}
+
 @Component({
   selector: 'app-new-order',
   standalone: true,
@@ -43,6 +48,25 @@ export class NewOrderComponent implements OnInit {
     this.cart().reduce((sum, item) => sum + item.qty, 0)
   );
 
+  private qtyByProductId = computed(() => {
+    const map = new Map<string, number>();
+    for (const item of this.cart()) {
+      map.set(item.product.id, item.qty);
+    }
+    return map;
+  });
+
+  groupedProducts = computed<ProductGroup[]>(() => {
+    const map = new Map<string, OpsProduct[]>();
+    for (const p of this.products()) {
+      const key = p.categoryName ?? 'Sin categoría';
+      const arr = map.get(key) ?? [];
+      arr.push(p);
+      map.set(key, arr);
+    }
+    return Array.from(map.entries()).map(([category, items]) => ({ category, items }));
+  });
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
@@ -56,7 +80,10 @@ export class NewOrderComponent implements OnInit {
     const routeRestaurantId = this.route.snapshot.queryParamMap.get('restaurantId');
     this.restaurantId = this.authService.enforceRestaurantContext(routeRestaurantId);
     const tn = this.route.snapshot.queryParamMap.get('tableNumber');
-    if (tn) this.tableNumber.set(parseInt(tn, 10));
+    if (tn) {
+      const parsed = Number.parseInt(tn, 10);
+      this.tableNumber.set(Number.isFinite(parsed) && parsed > 0 ? parsed : null);
+    }
 
     if (!this.restaurantId) {
       this.error.set('No tienes permiso para acceder a este restaurante.');
@@ -80,19 +107,13 @@ export class NewOrderComponent implements OnInit {
     });
   }
 
-  get groupedProducts(): { category: string; items: OpsProduct[] }[] {
-    const map = new Map<string, OpsProduct[]>();
-    for (const p of this.products()) {
-      const key = p.categoryName ?? 'Sin categoría';
-      const arr = map.get(key) ?? [];
-      arr.push(p);
-      map.set(key, arr);
-    }
-    return Array.from(map.entries()).map(([category, items]) => ({ category, items }));
+  qtyOf(productId: string): number {
+    return this.qtyByProductId().get(productId) ?? 0;
   }
 
-  qtyOf(productId: string): number {
-    return this.cart().find(i => i.product.id === productId)?.qty ?? 0;
+  setTableNumber(value: unknown) {
+    const asNumber = typeof value === 'number' ? value : Number.parseInt(String(value), 10);
+    this.tableNumber.set(Number.isFinite(asNumber) && asNumber > 0 ? asNumber : null);
   }
 
   addToCart(product: OpsProduct) {
@@ -141,12 +162,16 @@ export class NewOrderComponent implements OnInit {
   submitOrder() {
     if (this.submitting() || this.cart().length === 0) return;
 
+    const tableNumber = this.tableNumber();
+
     this.submitting.set(true);
     this.submitError.set(null);
 
     const body: CreateOpsOrderRequest = {
       restaurantId: this.restaurantId,
-      tableNumber: this.tableNumber() ?? undefined,
+      // Avoid backend defaulting to DELIVERY when no table is provided.
+      orderType: tableNumber ? 'DINE_IN' : 'TAKEAWAY',
+      tableNumber: tableNumber ?? undefined,
       customerName: this.customerName.trim() || undefined,
       notes: this.orderNotes.trim() || undefined,
       items: this.cart().map(i => ({
@@ -167,5 +192,13 @@ export class NewOrderComponent implements OnInit {
         this.submitError.set(err?.error?.detail ?? err?.error ?? 'Error al crear la orden.');
       }
     });
+  }
+
+  trackByCategory(_index: number, group: ProductGroup): string {
+    return group.category;
+  }
+
+  trackByProduct(_index: number, product: OpsProduct): string {
+    return product.id;
   }
 }

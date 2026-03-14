@@ -75,6 +75,14 @@ export class AuthService {
     return roles.some((role) => role.toLowerCase() === currentRole);
   }
 
+  getDefaultPathForCurrentRole(): string {
+    const role = this.getRole();
+    if (role === 'superadmin') return '/platform/onboarding';
+    if (role === 'waiter') return '/waiters';
+    if (role === 'delivery') return '/delivery';
+    return '/dashboard';
+  }
+
   enforceRestaurantContext(routeRestaurantId: string | null): string {
     const tokenRestaurantId = this.getRestaurantId();
     if (!tokenRestaurantId) {

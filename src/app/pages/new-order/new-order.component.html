@@ -30,7 +30,7 @@
                class="meta-input"
                placeholder="N. mesa"
                [ngModel]="tableNumber()"
-               (ngModelChange)="tableNumber.set($event)" />
+               (ngModelChange)="setTableNumber($event)" />
       </div>
       <div class="meta-field">
         <label class="meta-label">Cliente (opcional)</label>
@@ -43,11 +43,11 @@
 
     <!-- Products by category -->
     <div class="categories">
-      <section *ngFor="let group of groupedProducts" class="category-section">
+      <section *ngFor="let group of groupedProducts(); trackBy: trackByCategory" class="category-section">
         <h2 class="category-title">{{ group.category }}</h2>
 
         <div class="product-list">
-          <div *ngFor="let p of group.items" class="product-row">
+          <div *ngFor="let p of group.items; trackBy: trackByProduct" class="product-row">
             <div class="product-info">
               <span class="product-name">{{ p.name }}</span>
               <span class="product-price">${{ formatPrice(p.price) }}</span>

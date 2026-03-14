@@ -20,7 +20,7 @@ export const routes: Routes = [
     path: 'dashboard',
     component: DashboardComponent,
     canActivate: [authGuard, roleGuard],
-    data: { roles: ['kitchen', 'waiter', 'admin', 'manager'] }
+    data: { roles: ['kitchen', 'admin', 'manager'] }
   },
   {
     path: 'waiters',

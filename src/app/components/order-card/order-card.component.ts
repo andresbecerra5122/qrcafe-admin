@@ -14,6 +14,7 @@ export class OrderCardComponent {
   @Input() mode: 'kitchen' | 'waiter' | 'delivery' = 'kitchen';
   @Output() statusChange = new EventEmitter<{ orderId: string; newStatus: string }>();
   @Output() collectOrder = new EventEmitter<{ orderId: string; paymentMethod: string }>();
+  @Output() addProducts = new EventEmitter<{ orderId: string; tableNumber: number | null }>();
 
   showCollectOptions = signal(false);
   itemsExpanded = signal(false);
@@ -107,6 +108,13 @@ export class OrderCardComponent {
     return this.mode === 'waiter' && this.order.status === 'DELIVERED';
   }
 
+  get showAddProductsBtn(): boolean {
+    return this.mode === 'waiter'
+      && this.order.orderType === 'DINE_IN'
+      && this.order.tableNumber != null
+      && ['CREATED', 'IN_PROGRESS', 'READY', 'DELIVERED'].includes(this.order.status);
+  }
+
   get hasDeliveryInfo(): boolean {
     return this.order.orderType === 'DELIVERY'
       && (!!this.order.deliveryAddress || !!this.order.deliveryPhone || !!this.order.deliveryReference);
@@ -130,6 +138,13 @@ export class OrderCardComponent {
   onCollect(method: string) {
     this.collectOrder.emit({ orderId: this.order.orderId, paymentMethod: method });
     this.showCollectOptions.set(false);
+  }
+
+  onAddProducts() {
+    this.addProducts.emit({
+      orderId: this.order.orderId,
+      tableNumber: this.order.tableNumber
+    });
   }
 
   get visibleItems(): OpsOrderItem[] {

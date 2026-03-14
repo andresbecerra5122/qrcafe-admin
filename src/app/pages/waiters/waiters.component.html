@@ -23,6 +23,10 @@
     <p>{{ error() }}</p>
   </div>
 
+  <div *ngIf="waiterAlert()" class="error-card">
+    <p>{{ waiterAlert() }}</p>
+  </div>
+
   <!-- ===== WAITER CALLS SECTION ===== -->
   <section *ngIf="waiterCalls().length > 0" class="calls-section">
     <h2 class="section-title">🔔 Llamadas de mesa</h2>
@@ -80,7 +84,8 @@
       [order]="o"
       [mode]="'waiter'"
       (statusChange)="onStatusChange($event)"
-      (collectOrder)="onCollect($event)">
+      (collectOrder)="onCollect($event)"
+      (addProducts)="onAddProducts($event)">
     </app-order-card>
   </div>
 </div>

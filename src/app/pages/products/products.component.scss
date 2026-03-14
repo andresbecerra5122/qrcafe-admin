@@ -66,6 +66,26 @@
   @apply accent-amber-600;
 }
 
+.tables-config {
+  @apply flex flex-col gap-2 bg-stone-50 rounded-xl px-3 py-3;
+}
+
+.tables-config__summary {
+  @apply text-sm text-stone-700 font-medium;
+}
+
+.tables-config__controls {
+  @apply flex items-center gap-2 flex-wrap;
+}
+
+.tables-config__input {
+  @apply w-28;
+}
+
+.tables-config__error {
+  @apply text-xs text-red-600 font-medium;
+}
+
 .create-title {
   @apply text-base font-bold text-stone-800;
 }

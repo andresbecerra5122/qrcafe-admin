@@ -56,6 +56,10 @@
     <p>{{ error() }}</p>
   </div>
 
+  <div *ngIf="kitchenAlert()" class="error-card">
+    <p>{{ kitchenAlert() }}</p>
+  </div>
+
   <!-- Filter tabs -->
   <div class="filter-bar" *ngIf="!error()">
     <button

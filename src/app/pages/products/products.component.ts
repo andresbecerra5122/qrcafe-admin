@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ProductsService } from '../../services/products.service';
 import { RestaurantService } from '../../services/restaurant.service';
+import { TablesService } from '../../services/tables.service';
 import { AuthService } from '../../services/auth.service';
 import { OpsProduct } from '../../models/product.model';
 
@@ -30,6 +31,10 @@ export class ProductsComponent implements OnInit {
   enableDelivery = signal(false);
   enableDeliveryCash = signal(true);
   enableDeliveryCard = signal(true);
+  activeTablesCount = signal(0);
+  desiredTablesCount = signal<number | null>(null);
+  tablesSaving = signal(false);
+  tablesError = signal<string | null>(null);
 
   newName = '';
   newDescription = '';
@@ -51,6 +56,7 @@ export class ProductsComponent implements OnInit {
     private route: ActivatedRoute,
     private productsService: ProductsService,
     private restaurantService: RestaurantService,
+    private tablesService: TablesService,
     private authService: AuthService
   ) {}
 
@@ -76,6 +82,9 @@ export class ProductsComponent implements OnInit {
     });
 
     this.fetchProducts();
+    if (this.canManageSettings()) {
+      this.fetchTablesCount();
+    }
   }
 
   fetchProducts() {
@@ -276,6 +285,42 @@ export class ProductsComponent implements OnInit {
     });
   }
 
+  onTablesCountInput(value: unknown): void {
+    const parsed = typeof value === 'number' ? value : Number.parseInt(String(value), 10);
+    if (!Number.isFinite(parsed)) {
+      this.desiredTablesCount.set(null);
+      return;
+    }
+
+    const normalized = Math.max(0, Math.min(200, parsed));
+    this.desiredTablesCount.set(normalized);
+  }
+
+  saveTablesCount(): void {
+    if (!this.canManageSettings() || this.tablesSaving()) return;
+    const nextCount = this.desiredTablesCount();
+    if (nextCount == null) return;
+    if (nextCount === this.activeTablesCount()) return;
+
+    this.tablesSaving.set(true);
+    this.tablesError.set(null);
+    this.tablesService.updateActiveCount(this.restaurantId, nextCount).subscribe({
+      next: (res) => {
+        this.activeTablesCount.set(res.activeCount);
+        this.desiredTablesCount.set(res.activeCount);
+        this.tablesSaving.set(false);
+      },
+      error: (err) => {
+        this.tablesSaving.set(false);
+        this.tablesError.set(
+          err?.error?.detail
+          ?? err?.error?.error
+          ?? 'No se pudo actualizar la cantidad de mesas.'
+        );
+      }
+    });
+  }
+
   onToggleDelivery(nextValue: boolean): void {
     if (!this.canManageSettings() || this.settingsSaving()) return;
 
@@ -319,6 +364,19 @@ export class ProductsComponent implements OnInit {
         this.settingsSaving.set(false);
       },
       error: () => this.settingsSaving.set(false)
+    });
+  }
+
+  private fetchTablesCount(): void {
+    this.tablesError.set(null);
+    this.tablesService.getTables(this.restaurantId).subscribe({
+      next: (tables) => {
+        this.activeTablesCount.set(tables.length);
+        this.desiredTablesCount.set(tables.length);
+      },
+      error: () => {
+        this.tablesError.set('No se pudo cargar la cantidad de mesas activas.');
+      }
     });
   }
 
