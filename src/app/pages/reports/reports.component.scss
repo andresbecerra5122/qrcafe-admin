@@ -1,0 +1,127 @@
+.reports-page {
+  @apply max-w-4xl mx-auto px-4 sm:px-6 py-6 space-y-6;
+}
+
+.topbar {
+  @apply bg-white rounded-2xl px-6 py-4 shadow-sm border border-orange-100/80
+    flex items-center justify-between flex-wrap gap-3;
+}
+
+.topbar-left {
+  @apply flex items-center gap-3;
+}
+
+.logo {
+  @apply text-2xl font-extrabold tracking-tight text-stone-900;
+}
+
+.logo-accent {
+  @apply text-amber-600;
+}
+
+.summary-chip {
+  @apply text-sm font-medium bg-orange-50 text-amber-700 rounded-full px-3 py-1;
+}
+
+.btn-back {
+  @apply text-sm font-semibold text-amber-700 bg-orange-50 hover:bg-orange-100
+    px-4 py-2 rounded-xl transition-colors no-underline;
+}
+
+.period-tabs {
+  @apply flex flex-wrap gap-2;
+}
+
+.period-tab {
+  @apply px-4 py-2 rounded-xl text-sm font-semibold bg-white border border-stone-200 text-stone-600;
+}
+
+.period-tab.active {
+  @apply bg-amber-600 text-white border-amber-600;
+}
+
+.period-nav {
+  @apply flex items-center justify-between gap-2 bg-white border border-stone-200 rounded-xl px-3 py-2;
+}
+
+.period-nav-btn {
+  @apply px-3 py-1.5 rounded-lg text-sm font-semibold bg-stone-100 text-stone-700
+    hover:bg-stone-200 disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+.period-nav-label {
+  @apply text-sm font-semibold text-stone-700;
+}
+
+.loading {
+  @apply text-center py-20 text-stone-400 space-y-2;
+}
+
+.loading-icon {
+  @apply text-4xl;
+}
+
+.error-card {
+  @apply bg-red-50 text-red-700 rounded-2xl p-6 ring-1 ring-red-200 font-semibold;
+}
+
+.summary-grid {
+  @apply grid grid-cols-1 md:grid-cols-2 gap-3;
+}
+
+.metric-card {
+  @apply bg-white rounded-2xl p-4 border border-orange-100/80 shadow-sm;
+}
+
+.metric-card h3 {
+  @apply text-sm font-semibold text-stone-600;
+}
+
+.metric-value {
+  @apply text-xl font-bold text-stone-900 mt-1;
+}
+
+.metric-sub {
+  @apply text-xs text-stone-500 mt-1;
+}
+
+.range-card {
+  @apply bg-white rounded-2xl p-4 border border-orange-100/80 shadow-sm space-y-1 text-sm text-stone-600;
+}
+
+.range-card h3 {
+  @apply text-base font-semibold text-stone-800;
+}
+
+.orders-card {
+  @apply bg-white rounded-2xl p-4 border border-orange-100/80 shadow-sm space-y-2;
+}
+
+.orders-card h3 {
+  @apply text-base font-semibold text-stone-800;
+}
+
+.orders-card__sub {
+  @apply text-xs text-stone-500;
+}
+
+.orders-empty {
+  @apply text-sm text-stone-500 py-2;
+}
+
+.orders-table-wrap {
+  @apply overflow-x-auto;
+}
+
+.orders-table {
+  @apply w-full text-sm;
+}
+
+.orders-table th {
+  @apply text-left text-xs uppercase tracking-wider text-stone-500 border-b border-stone-200 pb-2;
+}
+
+.orders-table td {
+  @apply py-2 border-b border-stone-100 text-stone-700;
+}
+

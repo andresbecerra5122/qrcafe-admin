@@ -1,0 +1,170 @@
+<div class="reports-page">
+  <header class="topbar">
+    <div class="topbar-left">
+      <h1 class="logo">{{ restaurantName() || 'QrCafe' }} <span class="logo-accent">Reportes</span></h1>
+      <span *ngIf="summary()" class="summary-chip">Pagadas: {{ summary()!.paidOrdersCount }}</span>
+    </div>
+    <a
+      class="btn-back"
+      [routerLink]="['/dashboard']"
+      [queryParams]="{ restaurantId: restaurantId }">
+      Volver a Cocina
+    </a>
+  </header>
+
+  <div class="period-tabs" *ngIf="!error()">
+    <button
+      *ngFor="let tab of periodTabs"
+      class="period-tab"
+      [class.active]="selectedPeriod() === tab.value"
+      (click)="setPeriod(tab.value)">
+      {{ tab.label }}
+    </button>
+  </div>
+
+  <div class="period-nav" *ngIf="!error()">
+    <button class="period-nav-btn" type="button" (click)="goToPreviousPeriod()">← Anterior</button>
+    <span class="period-nav-label">{{ periodLabel() }}</span>
+    <button class="period-nav-btn" type="button" [disabled]="!canGoNext()" (click)="goToNextPeriod()">Siguiente →</button>
+  </div>
+
+  <div class="period-tabs" *ngIf="!error()">
+    <button
+      *ngFor="let tab of basisTabs"
+      class="period-tab"
+      [class.active]="selectedBasis() === tab.value"
+      (click)="setBasis(tab.value)">
+      {{ tab.label }}
+    </button>
+  </div>
+
+  <div class="period-tabs" *ngIf="!error()">
+    <button
+      *ngFor="let tab of viewTabs"
+      class="period-tab"
+      [class.active]="selectedView() === tab.value"
+      (click)="setView(tab.value)">
+      {{ tab.label }}
+    </button>
+  </div>
+
+  <div *ngIf="error()" class="error-card">
+    <p>{{ error() }}</p>
+  </div>
+
+  <div *ngIf="loading()" class="loading">
+    <div class="loading-icon">📈</div>
+    <p>Cargando resumen...</p>
+  </div>
+
+  <section *ngIf="!loading() && selectedView() === 'orders' && summary() as s" class="summary-grid">
+    <article class="metric-card">
+      <h3>{{ selectedBasis() === 'paid' ? 'Total vendido (cobrado)' : 'Total comandado' }}</h3>
+      <p class="metric-value">{{ formatMoney(s.totalSales) }}</p>
+    </article>
+
+    <article class="metric-card">
+      <h3>Ticket promedio</h3>
+      <p class="metric-value">{{ formatMoney(s.averageTicket) }}</p>
+    </article>
+
+    <article class="metric-card">
+      <h3>Efectivo</h3>
+      <p class="metric-value">{{ formatMoney(s.cash.amount) }}</p>
+      <p class="metric-sub">{{ s.cash.ordersCount }} órdenes</p>
+    </article>
+
+    <article class="metric-card">
+      <h3>Tarjeta</h3>
+      <p class="metric-value">{{ formatMoney(s.card.amount) }}</p>
+      <p class="metric-sub">{{ s.card.ordersCount }} órdenes</p>
+    </article>
+  </section>
+
+  <section *ngIf="!loading() && selectedView() === 'orders' && summary() as s" class="range-card">
+    <h3>Rango aplicado</h3>
+    <p>Base: <strong>{{ selectedBasis() === 'paid' ? 'Ventas cobradas' : 'Valor de comandas' }}</strong></p>
+    <p>Zona horaria restaurante: <strong>{{ s.timeZone }}</strong></p>
+    <p>Inicio: {{ formatUtcRange(s.rangeStartUtc) }}</p>
+    <p>Fin: {{ formatUtcRange(s.rangeEndUtc) }}</p>
+  </section>
+
+  <section *ngIf="!loading() && selectedView() === 'orders' && summary() as s" class="orders-card">
+    <h3>Detalle de órdenes incluidas</h3>
+    <p class="orders-card__sub">Valores totales por orden dentro del reporte seleccionado.</p>
+
+    <div *ngIf="s.orders.length === 0" class="orders-empty">
+      No hay órdenes en este rango.
+    </div>
+
+    <div *ngIf="s.orders.length > 0" class="orders-table-wrap">
+      <table class="orders-table">
+        <thead>
+          <tr>
+            <th>Orden</th>
+            <th>Método</th>
+            <th>Fecha (UTC)</th>
+            <th>Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let o of s.orders; trackBy: trackByOrderId">
+            <td>#{{ o.orderNumber }}</td>
+            <td>{{ formatPaymentMethod(o.paymentMethod) }}</td>
+            <td>{{ formatUtcRange(o.occurredAtUtc) }}</td>
+            <td>{{ formatMoney(o.total) }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section *ngIf="!loading() && selectedView() === 'products' && productSummary() as p" class="summary-grid">
+    <article class="metric-card">
+      <h3>Total productos vendidos</h3>
+      <p class="metric-value">{{ p.totalItemsSold }}</p>
+    </article>
+
+    <article class="metric-card">
+      <h3>Valor generado</h3>
+      <p class="metric-value">{{ formatMoney(p.totalRevenue) }}</p>
+    </article>
+  </section>
+
+  <section *ngIf="!loading() && selectedView() === 'products' && productSummary() as p" class="range-card">
+    <h3>Rango aplicado (Productos)</h3>
+    <p>Base: <strong>{{ selectedBasis() === 'paid' ? 'Ventas cobradas' : 'Valor de comandas' }}</strong></p>
+    <p>Zona horaria restaurante: <strong>{{ p.timeZone }}</strong></p>
+    <p>Inicio: {{ formatUtcRange(p.rangeStartUtc) }}</p>
+    <p>Fin: {{ formatUtcRange(p.rangeEndUtc) }}</p>
+  </section>
+
+  <section *ngIf="!loading() && selectedView() === 'products' && productSummary() as p" class="orders-card">
+    <h3>Detalle por producto</h3>
+    <p class="orders-card__sub">Cantidad vendida y valor total generado por producto en el rango seleccionado.</p>
+
+    <div *ngIf="p.products.length === 0" class="orders-empty">
+      No hay productos vendidos en este rango.
+    </div>
+
+    <div *ngIf="p.products.length > 0" class="orders-table-wrap">
+      <table class="orders-table">
+        <thead>
+          <tr>
+            <th>Producto</th>
+            <th>Cantidad</th>
+            <th>Valor generado</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of p.products; trackBy: trackByProductId">
+            <td>{{ item.productName }}</td>
+            <td>{{ item.qtySold }}</td>
+            <td>{{ formatMoney(item.revenue) }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+

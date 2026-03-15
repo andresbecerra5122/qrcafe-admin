@@ -34,6 +34,13 @@
          [queryParams]="{ restaurantId: restaurantId }">
         Productos Admin
       </a>
+      <a
+         *ngIf="canAccessReports()"
+         class="btn-products"
+         [routerLink]="['/reports']"
+         [queryParams]="{ restaurantId: restaurantId }">
+        Reportes
+      </a>
       <a class="btn-products"
          [routerLink]="['/qr-codes']"
          [queryParams]="{ restaurantId: restaurantId }">

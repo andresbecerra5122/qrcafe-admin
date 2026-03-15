@@ -10,6 +10,7 @@ import { LoginComponent } from './pages/login/login.component';
 import { StaffComponent } from './pages/staff/staff.component';
 import { DeliveryComponent } from './pages/delivery/delivery.component';
 import { PlatformOnboardingComponent } from './pages/platform-onboarding/platform-onboarding.component';
+import { ReportsComponent } from './pages/reports/reports.component';
 
 export const routes: Routes = [
   {
@@ -61,6 +62,12 @@ export const routes: Routes = [
   {
     path: 'staff',
     component: StaffComponent,
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['admin', 'manager'] }
+  },
+  {
+    path: 'reports',
+    component: ReportsComponent,
     canActivate: [authGuard, roleGuard],
     data: { roles: ['admin', 'manager'] }
   },

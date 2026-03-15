@@ -179,6 +179,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
     return this.authService.hasAnyRole(['admin', 'manager']);
   }
 
+  canAccessReports(): boolean {
+    return this.authService.hasAnyRole(['admin', 'manager']);
+  }
+
   canControlAvailability(): boolean {
     return this.authService.hasAnyRole(['kitchen', 'admin', 'manager']);
   }
