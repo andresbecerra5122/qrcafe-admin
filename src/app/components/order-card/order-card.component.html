@@ -25,7 +25,7 @@
   </div>
 
   <!-- Order items -->
-  <div class="items-section" *ngIf="order.items?.length">
+  <div class="items-section" *ngIf="filteredItemsCount > 0">
     <ng-container *ngFor="let item of visibleItems; let i = index">
       <div
         *ngIf="shouldShowDoneDivider(i, item, visibleItems)"
@@ -33,18 +33,27 @@
         Ya preparados/entregados
       </div>
 
-      <div class="item-row" [class.item-checked]="mode === 'kitchen' && isChecked(i, item)">
+      <div class="item-row" [class.item-checked]="mode === 'kitchen' && isPrepared(item)">
         <label *ngIf="mode === 'kitchen'" class="item-checkbox" (click)="$event.stopPropagation()">
           <input type="checkbox"
-                 [checked]="isChecked(i, item)"
-                 [disabled]="!checkboxesEnabled || item.isDone"
-                 (change)="toggleCheck(i, item)" />
+                 [checked]="isPrepared(item)"
+                 [disabled]="!preparedCheckboxesEnabled"
+                 (change)="togglePrepared(item)" />
+        </label>
+
+        <label *ngIf="mode === 'waiter'" class="item-checkbox" (click)="$event.stopPropagation()">
+          <input type="checkbox"
+                 [checked]="isDelivered(item)"
+                 [disabled]="!deliveredCheckboxesEnabled || !item.isPrepared"
+                 (change)="toggleDelivered(item)" />
         </label>
 
         <span class="item-qty">{{ item.qty }}x</span>
         <div class="item-content">
           <span class="item-name">{{ item.productName }}</span>
-          <span *ngIf="mode === 'kitchen' && item.isDone" class="done-pill">Hecho</span>
+          <span class="done-pill" *ngIf="item.prepStation === 'BAR'">Barra</span>
+          <span *ngIf="mode === 'kitchen' && item.isPrepared" class="done-pill">Hecho</span>
+          <span *ngIf="mode === 'waiter' && item.isDelivered" class="done-pill">Entregado</span>
           <div *ngIf="item.notes as note" class="item-notes-wrap">
             <span class="item-notes" [class.item-notes--expanded]="isNoteExpanded(i)">{{ note }}</span>
             <button
@@ -62,7 +71,7 @@
     <button *ngIf="hasMoreItems && !itemsExpanded()"
             class="btn-expand"
             (click)="toggleItemsExpanded()">
-      ver todo ({{ order.items.length }})
+      ver todo ({{ filteredItemsCount }})
     </button>
     <button *ngIf="hasMoreItems && itemsExpanded()"
             class="btn-expand"

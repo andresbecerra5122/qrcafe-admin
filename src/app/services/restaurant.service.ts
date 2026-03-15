@@ -11,6 +11,7 @@ export interface RestaurantInfo {
   enableDelivery: boolean;
   enableDeliveryCash: boolean;
   enableDeliveryCard: boolean;
+  enableKitchenBarSplit: boolean;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -36,6 +37,7 @@ export class RestaurantService {
       enableDelivery?: boolean;
       enableDeliveryCash?: boolean;
       enableDeliveryCard?: boolean;
+      enableKitchenBarSplit?: boolean;
     }
   ): Observable<RestaurantInfo> {
     return this.http

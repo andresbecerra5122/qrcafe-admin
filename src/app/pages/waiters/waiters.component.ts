@@ -44,8 +44,10 @@ export class WaitersComponent implements OnInit, OnDestroy {
   ];
 
   private pollTimer: ReturnType<typeof setInterval> | null = null;
-  private readyOrderIds = new Set<string>();
-  private readyAlertInitialized = false;
+  private preparedItemIds = new Set<string>();
+  private preparedAlertInitialized = false;
+  private paymentPendingOrderIds = new Set<string>();
+  private paymentPendingAlertInitialized = false;
   private alertTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor(
@@ -136,6 +138,13 @@ export class WaitersComponent implements OnInit, OnDestroy {
     });
   }
 
+  onItemDeliveredChange(event: { orderId: string; itemId: string; value: boolean }) {
+    this.ordersService.updateItemDelivered(event.orderId, event.itemId, event.value).subscribe({
+      next: () => this.fetchOrders(),
+      error: (err) => console.error('Failed to update item delivered state', err)
+    });
+  }
+
   onAddProducts(event: { orderId: string; tableNumber: number | null }) {
     this.router.navigate(['/new-order'], {
       queryParams: {
@@ -191,20 +200,47 @@ export class WaitersComponent implements OnInit, OnDestroy {
   }
 
   private checkReadyAlerts(): void {
-    this.ordersService.getOrders(this.restaurantId, 'READY', this.orderTypeFilter).subscribe({
-      next: (readyOrders) => {
-        const nextSet = new Set(readyOrders.map(o => o.orderId));
-        if (!this.readyAlertInitialized) {
-          this.readyOrderIds = nextSet;
-          this.readyAlertInitialized = true;
+    this.ordersService.getOrders(this.restaurantId, 'CREATED,IN_PROGRESS,READY,DELIVERED,PAYMENT_PENDING', this.orderTypeFilter).subscribe({
+      next: (orders) => {
+        const nextSet = new Set<string>();
+        for (const order of orders) {
+          for (const item of order.items ?? []) {
+            if (item.isPrepared) {
+              nextSet.add(item.itemId);
+            }
+          }
+        }
+
+        if (!this.preparedAlertInitialized) {
+          this.preparedItemIds = nextSet;
+          this.preparedAlertInitialized = true;
           return;
         }
 
-        const hasNewReady = readyOrders.some(o => !this.readyOrderIds.has(o.orderId));
-        this.readyOrderIds = nextSet;
+        const hasNewPreparedItems = Array.from(nextSet).some(itemId => !this.preparedItemIds.has(itemId));
+        this.preparedItemIds = nextSet;
 
-        if (hasNewReady) {
-          this.showWaiterAlert('Pedido listo para entregar');
+        if (hasNewPreparedItems) {
+          this.showWaiterAlert('Hay productos listos para entregar');
+          this.playAlertTone();
+        }
+      }
+    });
+
+    this.ordersService.getOrders(this.restaurantId, 'PAYMENT_PENDING', this.orderTypeFilter).subscribe({
+      next: (paymentPendingOrders) => {
+        const nextSet = new Set(paymentPendingOrders.map(o => o.orderId));
+        if (!this.paymentPendingAlertInitialized) {
+          this.paymentPendingOrderIds = nextSet;
+          this.paymentPendingAlertInitialized = true;
+          return;
+        }
+
+        const hasNewPaymentPending = paymentPendingOrders.some(o => !this.paymentPendingOrderIds.has(o.orderId));
+        this.paymentPendingOrderIds = nextSet;
+
+        if (hasNewPaymentPending) {
+          this.showWaiterAlert('Solicitud de pago recibida');
           this.playAlertTone();
         }
       }

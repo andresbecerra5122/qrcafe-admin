@@ -50,4 +50,18 @@ export class OrdersService {
       { paymentMethod }
     );
   }
+
+  updateItemPrepared(orderId: string, itemId: string, value: boolean): Observable<void> {
+    return this.http.patch<void>(
+      `${this.baseUrl}/ops/orders/${orderId}/items/${itemId}/prepared`,
+      { value }
+    );
+  }
+
+  updateItemDelivered(orderId: string, itemId: string, value: boolean): Observable<void> {
+    return this.http.patch<void>(
+      `${this.baseUrl}/ops/orders/${orderId}/items/${itemId}/delivered`,
+      { value }
+    );
+  }
 }

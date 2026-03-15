@@ -5,13 +5,20 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { OrdersService } from '../../services/orders.service';
 import { RestaurantService } from '../../services/restaurant.service';
 import { AuthService } from '../../services/auth.service';
-import { OpsOrder } from '../../models/order.model';
+import { OpsOrder, PrepStation } from '../../models/order.model';
 import { OrderCardComponent } from '../../components/order-card/order-card.component';
 
 interface FilterTab {
   label: string;
   value: string;
   statusCsv: string | null;
+}
+
+type StationFilterValue = 'ALL' | PrepStation;
+
+interface StationFilterTab {
+  label: string;
+  value: StationFilterValue;
 }
 
 @Component({
@@ -28,8 +35,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
   loading = signal(true);
   error = signal<string | null>(null);
   activeFilter = signal<string>('ACTIVE');
+  stationFilter = signal<StationFilterValue>('ALL');
   enableDineIn = signal(true);
   enableDelivery = signal(false);
+  enableKitchenBarSplit = signal(false);
   kitchenAlert = signal<string | null>(null);
 
   filters: FilterTab[] = [
@@ -41,9 +50,15 @@ export class DashboardComponent implements OnInit, OnDestroy {
     { label: 'Todos',          value: 'ALL',            statusCsv: null },
   ];
 
+  stationFilters: StationFilterTab[] = [
+    { label: 'Todas', value: 'ALL' },
+    { label: 'Cocina', value: 'KITCHEN' },
+    { label: 'Barra', value: 'BAR' }
+  ];
+
   private pollTimer: ReturnType<typeof setInterval> | null = null;
-  private createdOrderIds = new Set<string>();
-  private createdAlertInitialized = false;
+  private kitchenItemIds = new Set<string>();
+  private kitchenItemsAlertInitialized = false;
   private alertTimer: ReturnType<typeof setTimeout> | null = null;
 
   constructor(
@@ -68,6 +83,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.restaurantName.set(info.name);
         this.enableDineIn.set(info.enableDineIn);
         this.enableDelivery.set(info.enableDelivery);
+        this.enableKitchenBarSplit.set(info.enableKitchenBarSplit);
+        if (!info.enableKitchenBarSplit) {
+          this.stationFilter.set('ALL');
+        }
       }
     });
 
@@ -82,6 +101,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
   setFilter(value: string) {
     this.activeFilter.set(value);
     this.fetchOrders();
+  }
+
+  setStationFilter(value: StationFilterValue): void {
+    this.stationFilter.set(value);
   }
 
   fetchOrders() {
@@ -115,12 +138,37 @@ export class DashboardComponent implements OnInit, OnDestroy {
     });
   }
 
+  onItemPreparedChange(event: { orderId: string; itemId: string; value: boolean }) {
+    this.ordersService.updateItemPrepared(event.orderId, event.itemId, event.value).subscribe({
+      next: () => this.fetchOrders(),
+      error: (err) => console.error('Failed to update item prepared state', err)
+    });
+  }
+
   trackByOrderId(_index: number, order: OpsOrder): string {
     return order.orderId;
   }
 
   get orderCount(): number {
-    return this.orders().length;
+    return this.visibleOrders.length;
+  }
+
+  get visibleOrders(): OpsOrder[] {
+    return this.orders().filter(o => this.hasItemsForActiveStation(o));
+  }
+
+  get canFilterByStation(): boolean {
+    return this.enableKitchenBarSplit();
+  }
+
+  get activeStationFilter(): StationFilterValue {
+    return this.canFilterByStation ? this.stationFilter() : 'ALL';
+  }
+
+  hasItemsForActiveStation(order: OpsOrder): boolean {
+    const filter = this.activeStationFilter;
+    if (filter === 'ALL') return true;
+    return (order.items ?? []).some(item => item.prepStation === filter);
   }
 
   canManageStaff(): boolean {
@@ -159,20 +207,26 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   private checkKitchenAlerts(): void {
-    this.ordersService.getOrders(this.restaurantId, 'CREATED').subscribe({
-      next: (createdOrders) => {
-        const nextSet = new Set(createdOrders.map(o => o.orderId));
-        if (!this.createdAlertInitialized) {
-          this.createdOrderIds = nextSet;
-          this.createdAlertInitialized = true;
+    this.ordersService.getOrders(this.restaurantId, 'CREATED,IN_PROGRESS,READY').subscribe({
+      next: (activeOrders) => {
+        const nextSet = new Set<string>();
+        for (const order of activeOrders) {
+          for (const item of order.items ?? []) {
+            nextSet.add(item.itemId);
+          }
+        }
+
+        if (!this.kitchenItemsAlertInitialized) {
+          this.kitchenItemIds = nextSet;
+          this.kitchenItemsAlertInitialized = true;
           return;
         }
 
-        const hasNewCreated = createdOrders.some(o => !this.createdOrderIds.has(o.orderId));
-        this.createdOrderIds = nextSet;
+        const hasNewItems = Array.from(nextSet).some(itemId => !this.kitchenItemIds.has(itemId));
+        this.kitchenItemIds = nextSet;
 
-        if (hasNewCreated) {
-          this.showKitchenAlert('Nuevo pedido en cocina');
+        if (hasNewItems) {
+          this.showKitchenAlert('Nuevos productos en cocina/barra');
           this.playAlertTone();
         }
       }

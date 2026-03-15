@@ -64,6 +64,18 @@ select {
   @apply text-sm px-3 py-2 border border-slate-300 rounded-lg bg-white;
 }
 
+textarea {
+  @apply text-sm px-3 py-2 border border-slate-300 rounded-lg bg-white min-h-28;
+}
+
+.json-help {
+  @apply text-xs text-slate-500;
+}
+
+.json-help code {
+  @apply bg-slate-100 text-slate-700 px-1 py-0.5 rounded;
+}
+
 .checks {
   @apply flex flex-wrap gap-4 text-sm text-slate-700;
 }

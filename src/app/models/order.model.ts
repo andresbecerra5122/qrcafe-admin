@@ -1,7 +1,13 @@
+export type PrepStation = 'KITCHEN' | 'BAR';
+
 export interface OpsOrderItem {
+  itemId: string;
   productName: string;
   qty: number;
   notes: string | null;
+  prepStation: PrepStation;
+  isPrepared: boolean;
+  isDelivered: boolean;
   isDone: boolean;
 }
 

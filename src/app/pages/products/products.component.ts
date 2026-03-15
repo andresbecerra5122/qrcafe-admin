@@ -1,12 +1,19 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { ProductsService } from '../../services/products.service';
+import { CreateProductRequest, ProductsService } from '../../services/products.service';
 import { RestaurantService } from '../../services/restaurant.service';
 import { TablesService } from '../../services/tables.service';
 import { AuthService } from '../../services/auth.service';
 import { OpsProduct } from '../../models/product.model';
+
+interface ProductGroup {
+  category: string;
+  rawCategoryName: string | null;
+  categoryPrepStation: string;
+  items: OpsProduct[];
+}
 
 @Component({
   selector: 'app-products',
@@ -31,10 +38,14 @@ export class ProductsComponent implements OnInit {
   enableDelivery = signal(false);
   enableDeliveryCash = signal(true);
   enableDeliveryCard = signal(true);
+  enableKitchenBarSplit = signal(false);
   activeTablesCount = signal(0);
   desiredTablesCount = signal<number | null>(null);
   tablesSaving = signal(false);
   tablesError = signal<string | null>(null);
+  bulkJsonText = '';
+  bulkImportError = signal<string | null>(null);
+  bulkImportSuccess = signal<string | null>(null);
 
   newName = '';
   newDescription = '';
@@ -42,6 +53,7 @@ export class ProductsComponent implements OnInit {
   newPrice = 0;
   newSort = 0;
   newImageUrl = '';
+  newPrepStation = 'KITCHEN';
   newAvailable = true;
 
   editName = '';
@@ -50,7 +62,9 @@ export class ProductsComponent implements OnInit {
   editPrice = 0;
   editSort = 0;
   editImageUrl = '';
+  editPrepStation = 'KITCHEN';
   editAvailable = true;
+  categoryStationDrafts = signal<Record<string, string>>({});
 
   constructor(
     private route: ActivatedRoute,
@@ -78,6 +92,7 @@ export class ProductsComponent implements OnInit {
         this.enableDelivery.set(info.enableDelivery);
         this.enableDeliveryCash.set(info.enableDeliveryCash);
         this.enableDeliveryCard.set(info.enableDeliveryCard);
+        this.enableKitchenBarSplit.set(info.enableKitchenBarSplit);
       }
     });
 
@@ -147,6 +162,7 @@ export class ProductsComponent implements OnInit {
       name,
       description: this.newDescription.trim() || null,
       categoryName: this.newCategory.trim() || null,
+      prepStation: this.enableKitchenBarSplit() ? this.newPrepStation : 'KITCHEN',
       price: this.newPrice,
       sort: this.newSort,
       imageUrl: this.newImageUrl.trim() || null,
@@ -163,6 +179,61 @@ export class ProductsComponent implements OnInit {
     });
   }
 
+  onBulkJsonFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+
+    this.bulkImportError.set(null);
+    this.bulkImportSuccess.set(null);
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      this.bulkJsonText = typeof reader.result === 'string' ? reader.result : '';
+    };
+    reader.onerror = () => {
+      this.bulkImportError.set('No se pudo leer el archivo JSON.');
+    };
+    reader.readAsText(file);
+
+    input.value = '';
+  }
+
+  importFromJson(): void {
+    if (!this.adminPanel) return;
+    if (this.saving()) return;
+
+    this.bulkImportError.set(null);
+    this.bulkImportSuccess.set(null);
+
+    let parsedProducts: CreateProductRequest[];
+    try {
+      parsedProducts = this.parseBulkProductsJson(this.bulkJsonText);
+    } catch (error) {
+      this.bulkImportError.set(
+        error instanceof Error ? error.message : 'JSON invalido. Revisa el formato.'
+      );
+      return;
+    }
+
+    this.saving.set(true);
+    this.productsService.bulkCreateProducts({ products: parsedProducts }).subscribe({
+      next: (res) => {
+        this.saving.set(false);
+        this.bulkImportSuccess.set(`Se importaron ${res.createdCount} productos.`);
+        this.fetchProducts();
+      },
+      error: (err) => {
+        this.saving.set(false);
+        this.bulkImportError.set(
+          err?.error?.error
+          ?? err?.error?.detail
+          ?? 'No se pudo importar el JSON.'
+        );
+      }
+    });
+  }
+
   startEdit(product: OpsProduct) {
     if (!this.adminPanel) return;
     this.editingId.set(product.id);
@@ -172,6 +243,7 @@ export class ProductsComponent implements OnInit {
     this.editPrice = product.price;
     this.editSort = product.sort;
     this.editImageUrl = product.imageUrl ?? '';
+    this.editPrepStation = this.enableKitchenBarSplit() ? (product.prepStation ?? 'KITCHEN') : 'KITCHEN';
     this.editAvailable = product.isAvailable;
   }
 
@@ -191,6 +263,7 @@ export class ProductsComponent implements OnInit {
       name,
       description: this.editDescription.trim() || null,
       categoryName: this.editCategory.trim() || null,
+      prepStation: this.enableKitchenBarSplit() ? this.editPrepStation : 'KITCHEN',
       price: this.editPrice,
       sort: this.editSort,
       imageUrl: this.editImageUrl.trim() || null,
@@ -234,15 +307,52 @@ export class ProductsComponent implements OnInit {
     return this.products().length;
   }
 
-  get groupedProducts(): { category: string; items: OpsProduct[] }[] {
-    const map = new Map<string, OpsProduct[]>();
+  groupedProducts = computed<ProductGroup[]>(() => {
+    const map = new Map<string, ProductGroup>();
     for (const p of this.products()) {
-      const key = p.categoryName ?? 'Sin categoría';
-      const arr = map.get(key) ?? [];
-      arr.push(p);
-      map.set(key, arr);
+      const displayCategory = p.categoryName ?? 'Sin categoría';
+      const key = p.categoryName ?? '__uncategorized__';
+      const existing = map.get(key);
+      if (existing) {
+        existing.items.push(p);
+        continue;
+      }
+      map.set(key, {
+        category: displayCategory,
+        rawCategoryName: p.categoryName,
+        categoryPrepStation: p.categoryPrepStation ?? 'KITCHEN',
+        items: [p]
+      });
     }
-    return Array.from(map.entries()).map(([category, items]) => ({ category, items }));
+    return Array.from(map.values());
+  });
+
+  categoryStationSelection(group: ProductGroup): string {
+    if (!group.rawCategoryName) return 'KITCHEN';
+    return this.categoryStationDrafts()[group.rawCategoryName] ?? group.categoryPrepStation ?? 'KITCHEN';
+  }
+
+  onCategoryStationChange(group: ProductGroup, value: string): void {
+    if (!group.rawCategoryName) return;
+    this.categoryStationDrafts.update(prev => ({ ...prev, [group.rawCategoryName!]: value }));
+  }
+
+  applyCategoryStation(group: ProductGroup): void {
+    if (!this.adminPanel || !group.rawCategoryName || !this.enableKitchenBarSplit() || this.saving()) return;
+    const prepStation = this.categoryStationSelection(group);
+    this.saving.set(true);
+    this.productsService.updateCategoryStation({
+      categoryName: group.rawCategoryName,
+      prepStation
+    }).subscribe({
+      next: () => {
+        this.saving.set(false);
+        this.fetchProducts();
+      },
+      error: () => {
+        this.saving.set(false);
+      }
+    });
   }
 
   formatPrice(price: number): string {
@@ -279,6 +389,7 @@ export class ProductsComponent implements OnInit {
         this.enableDelivery.set(info.enableDelivery);
         this.enableDeliveryCash.set(info.enableDeliveryCash);
         this.enableDeliveryCard.set(info.enableDeliveryCard);
+        this.enableKitchenBarSplit.set(info.enableKitchenBarSplit);
         this.settingsSaving.set(false);
       },
       error: () => this.settingsSaving.set(false)
@@ -331,6 +442,7 @@ export class ProductsComponent implements OnInit {
         this.enableDelivery.set(info.enableDelivery);
         this.enableDeliveryCash.set(info.enableDeliveryCash);
         this.enableDeliveryCard.set(info.enableDeliveryCard);
+        this.enableKitchenBarSplit.set(info.enableKitchenBarSplit);
         this.settingsSaving.set(false);
       },
       error: () => this.settingsSaving.set(false)
@@ -346,6 +458,7 @@ export class ProductsComponent implements OnInit {
         this.enableDelivery.set(info.enableDelivery);
         this.enableDeliveryCash.set(info.enableDeliveryCash);
         this.enableDeliveryCard.set(info.enableDeliveryCard);
+        this.enableKitchenBarSplit.set(info.enableKitchenBarSplit);
         this.settingsSaving.set(false);
       },
       error: () => this.settingsSaving.set(false)
@@ -361,6 +474,27 @@ export class ProductsComponent implements OnInit {
         this.enableDelivery.set(info.enableDelivery);
         this.enableDeliveryCash.set(info.enableDeliveryCash);
         this.enableDeliveryCard.set(info.enableDeliveryCard);
+        this.enableKitchenBarSplit.set(info.enableKitchenBarSplit);
+        this.settingsSaving.set(false);
+      },
+      error: () => this.settingsSaving.set(false)
+    });
+  }
+
+  onToggleKitchenBarSplit(nextValue: boolean): void {
+    if (!this.canManageSettings() || this.settingsSaving()) return;
+    this.settingsSaving.set(true);
+    this.restaurantService.updateSettings(this.restaurantId, { enableKitchenBarSplit: nextValue }).subscribe({
+      next: (info) => {
+        this.enableDineIn.set(info.enableDineIn);
+        this.enableDelivery.set(info.enableDelivery);
+        this.enableDeliveryCash.set(info.enableDeliveryCash);
+        this.enableDeliveryCard.set(info.enableDeliveryCard);
+        this.enableKitchenBarSplit.set(info.enableKitchenBarSplit);
+        if (!info.enableKitchenBarSplit) {
+          this.newPrepStation = 'KITCHEN';
+          this.editPrepStation = 'KITCHEN';
+        }
         this.settingsSaving.set(false);
       },
       error: () => this.settingsSaving.set(false)
@@ -387,6 +521,116 @@ export class ProductsComponent implements OnInit {
     this.newPrice = 0;
     this.newSort = 0;
     this.newImageUrl = '';
+    this.newPrepStation = 'KITCHEN';
     this.newAvailable = true;
+  }
+
+  private parseBulkProductsJson(raw: string): CreateProductRequest[] {
+    if (!raw.trim()) {
+      throw new Error('Pega un JSON o sube un archivo .json antes de importar.');
+    }
+
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(raw);
+    } catch {
+      throw new Error('JSON invalido. Verifica comas, llaves y comillas.');
+    }
+
+    if (Array.isArray(parsed)) {
+      return this.normalizeProductsArray(parsed);
+    }
+
+    if (typeof parsed !== 'object' || parsed === null) {
+      throw new Error('Formato JSON no soportado.');
+    }
+
+    const root = parsed as Record<string, unknown>;
+    if (Array.isArray(root['products'])) {
+      return this.normalizeProductsArray(root['products']);
+    }
+
+    if (Array.isArray(root['menu'])) {
+      const items: unknown[] = [];
+      for (const categoryEntry of root['menu']) {
+        if (typeof categoryEntry !== 'object' || categoryEntry === null) continue;
+        const categoryObj = categoryEntry as Record<string, unknown>;
+        const categoryName = typeof categoryObj['category'] === 'string' ? categoryObj['category'] : null;
+        const categoryItems = Array.isArray(categoryObj['items']) ? categoryObj['items'] : [];
+        for (const item of categoryItems) {
+          if (typeof item !== 'object' || item === null) continue;
+          const itemObj = { ...(item as Record<string, unknown>) };
+          if (!itemObj['categoryName'] && categoryName) {
+            itemObj['categoryName'] = categoryName;
+          }
+          items.push(itemObj);
+        }
+      }
+
+      return this.normalizeProductsArray(items);
+    }
+
+    throw new Error('Formato no soportado. Usa un array de productos o { "products": [...] } o { "menu": [...] }.');
+  }
+
+  private normalizeProductsArray(items: unknown[]): CreateProductRequest[] {
+    if (!items.length) {
+      throw new Error('El JSON no contiene productos para importar.');
+    }
+
+    return items.map((item, index) => {
+      if (typeof item !== 'object' || item === null) {
+        throw new Error(`Producto en posicion ${index + 1} no es un objeto valido.`);
+      }
+
+      const obj = item as Record<string, unknown>;
+      const name = this.readString(obj['name']).trim();
+      if (!name) {
+        throw new Error(`El producto en posicion ${index + 1} no tiene nombre.`);
+      }
+
+      const priceRaw = obj['price'];
+      const price = typeof priceRaw === 'number' ? priceRaw : Number(priceRaw);
+      if (!Number.isFinite(price) || price < 0) {
+        throw new Error(`Precio invalido para "${name}".`);
+      }
+
+      const prepStationRaw = this.readString(obj['prepStation'] ?? 'KITCHEN').toUpperCase();
+      const prepStation = prepStationRaw === 'BAR' ? 'BAR' : 'KITCHEN';
+
+      const sortRaw = obj['sort'];
+      const sort = sortRaw == null ? index + 1 : Number(sortRaw);
+      if (!Number.isFinite(sort) || sort < 0) {
+        throw new Error(`Sort invalido para "${name}".`);
+      }
+
+      const imageCandidate = obj['imageUrl'] ?? obj['image'];
+      const imageUrl = this.readOptionalString(imageCandidate);
+
+      const availableRaw = obj['isAvailable'];
+      const isAvailable = typeof availableRaw === 'boolean' ? availableRaw : true;
+
+      return {
+        name,
+        description: this.readOptionalString(obj['description']),
+        categoryName: this.readOptionalString(obj['categoryName'] ?? obj['category']),
+        prepStation,
+        price,
+        imageUrl,
+        sort: Math.trunc(sort),
+        isAvailable
+      };
+    });
+  }
+
+  private readString(value: unknown): string {
+    if (typeof value === 'string') return value;
+    if (typeof value === 'number') return String(value);
+    return '';
+  }
+
+  private readOptionalString(value: unknown): string | null {
+    const text = this.readString(value).trim();
+    return text ? text : null;
   }
 }

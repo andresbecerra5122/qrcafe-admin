@@ -48,6 +48,15 @@
         <p *ngIf="tablesError()" class="tables-config__error">{{ tablesError() }}</p>
       </div>
 
+      <label class="setting-item">
+        <input
+          type="checkbox"
+          [checked]="enableKitchenBarSplit()"
+          [disabled]="settingsSaving()"
+          (change)="onToggleKitchenBarSplit($any($event.target).checked)" />
+        <span>Division Cocina / Barra</span>
+      </label>
+
       <div class="delivery-settings">
         <label class="setting-item">
           <input
@@ -91,6 +100,13 @@
       <label class="field">
         <span class="field-label">Categoría</span>
         <input class="create-input" type="text" placeholder="Ej: Bebidas" [(ngModel)]="newCategory" />
+      </label>
+      <label class="field">
+        <span class="field-label">Estación</span>
+        <select class="create-input" [(ngModel)]="newPrepStation" [disabled]="!enableKitchenBarSplit()">
+          <option value="KITCHEN">Cocina</option>
+          <option value="BAR">Barra</option>
+        </select>
       </label>
       <label class="field">
         <span class="field-label">Precio</span>
@@ -139,8 +155,27 @@
 
   <!-- Products by category -->
   <div *ngIf="!loading() && products().length > 0" class="categories">
-    <section *ngFor="let group of groupedProducts" class="category-section">
-      <h2 class="category-title">{{ group.category }}</h2>
+    <section *ngFor="let group of groupedProducts()" class="category-section">
+      <div class="category-header">
+        <h2 class="category-title">{{ group.category }}</h2>
+        <div *ngIf="adminPanel && enableKitchenBarSplit() && group.rawCategoryName" class="category-station-controls">
+          <select
+            class="create-input category-station-select"
+            [ngModel]="categoryStationSelection(group)"
+            [disabled]="saving()"
+            (ngModelChange)="onCategoryStationChange(group, $event)">
+            <option value="KITCHEN">Cocina</option>
+            <option value="BAR">Barra</option>
+          </select>
+          <button
+            class="btn-row"
+            type="button"
+            [disabled]="saving()"
+            (click)="applyCategoryStation(group)">
+            Aplicar a categoría
+          </button>
+        </div>
+      </div>
 
       <div class="product-list">
         <div *ngFor="let p of group.items"
@@ -158,6 +193,7 @@
           <div class="product-info">
             <span class="product-name">{{ p.name }}</span>
             <span class="product-price" *ngIf="p.description">{{ p.description }}</span>
+            <span class="product-price">Estación: {{ p.prepStation === 'BAR' ? 'Barra' : 'Cocina' }}</span>
             <span class="product-price">${{ formatPrice(p.price) }}</span>
           </div>
 
@@ -187,51 +223,61 @@
           </div>
         </div>
 
-        <div *ngIf="adminPanel && editingId()" class="edit-card">
-          <h3>Editar producto</h3>
-          <div class="create-grid">
-            <label class="field">
-              <span class="field-label">Nombre</span>
-              <input class="create-input" type="text" placeholder="Nombre" [(ngModel)]="editName" />
-            </label>
-            <label class="field">
-              <span class="field-label">Categoría</span>
-              <input class="create-input" type="text" placeholder="Categoría" [(ngModel)]="editCategory" />
-            </label>
-            <label class="field">
-              <span class="field-label">Precio</span>
-              <input class="create-input" type="number" min="0" placeholder="Precio" [(ngModel)]="editPrice" />
-            </label>
-            <label class="field">
-              <span class="field-label">Orden</span>
-              <input class="create-input" type="number" min="0" placeholder="Orden (sort)" [(ngModel)]="editSort" />
-            </label>
-            <label class="field">
-              <span class="field-label">URL de imagen</span>
-              <input class="create-input" type="text" placeholder="URL imagen (opcional)" [(ngModel)]="editImageUrl" />
-            </label>
-            <label class="create-check field">
-              <span class="field-label">Disponibilidad</span>
-              <input type="checkbox" [(ngModel)]="editAvailable" />
-              Disponible
-            </label>
-            <label class="field create-textarea">
-              <span class="field-label">Descripción</span>
-              <textarea class="create-input" rows="2" placeholder="Descripción (opcional)" [(ngModel)]="editDescription"></textarea>
-            </label>
-          </div>
-          <div class="edit-actions">
-            <button class="btn-row" type="button" (click)="cancelEdit()">Cancelar</button>
-            <button
-              class="btn-create"
-              type="button"
-              [disabled]="saving() || !editName.trim()"
-              (click)="saveEdit(editingId()!)">
-              {{ saving() ? 'Guardando...' : 'Guardar cambios' }}
-            </button>
-          </div>
-        </div>
       </div>
     </section>
+  </div>
+
+  <div *ngIf="adminPanel && editingId()" class="edit-modal-backdrop" (click)="cancelEdit()">
+    <div class="edit-card edit-card--modal" (click)="$event.stopPropagation()">
+      <h3>Editar producto</h3>
+      <div class="create-grid">
+        <label class="field">
+          <span class="field-label">Nombre</span>
+          <input class="create-input" type="text" placeholder="Nombre" [(ngModel)]="editName" />
+        </label>
+        <label class="field">
+          <span class="field-label">Categoría</span>
+          <input class="create-input" type="text" placeholder="Categoría" [(ngModel)]="editCategory" />
+        </label>
+        <label class="field">
+          <span class="field-label">Estación</span>
+          <select class="create-input" [(ngModel)]="editPrepStation" [disabled]="!enableKitchenBarSplit()">
+            <option value="KITCHEN">Cocina</option>
+            <option value="BAR">Barra</option>
+          </select>
+        </label>
+        <label class="field">
+          <span class="field-label">Precio</span>
+          <input class="create-input" type="number" min="0" placeholder="Precio" [(ngModel)]="editPrice" />
+        </label>
+        <label class="field">
+          <span class="field-label">Orden</span>
+          <input class="create-input" type="number" min="0" placeholder="Orden (sort)" [(ngModel)]="editSort" />
+        </label>
+        <label class="field">
+          <span class="field-label">URL de imagen</span>
+          <input class="create-input" type="text" placeholder="URL imagen (opcional)" [(ngModel)]="editImageUrl" />
+        </label>
+        <label class="create-check field">
+          <span class="field-label">Disponibilidad</span>
+          <input type="checkbox" [(ngModel)]="editAvailable" />
+          Disponible
+        </label>
+        <label class="field create-textarea">
+          <span class="field-label">Descripción</span>
+          <textarea class="create-input" rows="2" placeholder="Descripción (opcional)" [(ngModel)]="editDescription"></textarea>
+        </label>
+      </div>
+      <div class="edit-actions">
+        <button class="btn-row" type="button" (click)="cancelEdit()">Cancelar</button>
+        <button
+          class="btn-create"
+          type="button"
+          [disabled]="saving() || !editName.trim()"
+          (click)="saveEdit(editingId()!)">
+          {{ saving() ? 'Guardando...' : 'Guardar cambios' }}
+        </button>
+      </div>
+    </div>
   </div>
 </div>

@@ -8,6 +8,7 @@ export interface CreateProductRequest {
   name: string;
   description?: string | null;
   categoryName?: string | null;
+  prepStation?: string | null;
   price: number;
   imageUrl?: string | null;
   sort: number;
@@ -18,11 +19,25 @@ export interface UpdateProductRequest {
   name?: string;
   description?: string | null;
   categoryName?: string | null;
+  prepStation?: string | null;
   price?: number;
   imageUrl?: string | null;
   sort?: number;
   isAvailable?: boolean;
   isActive?: boolean;
+}
+
+export interface BulkCreateProductsRequest {
+  products: CreateProductRequest[];
+}
+
+export interface BulkCreateProductsResponse {
+  createdCount: number;
+}
+
+export interface UpdateCategoryStationRequest {
+  categoryName: string;
+  prepStation: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -54,5 +69,13 @@ export class ProductsService {
 
   deleteProduct(productId: string): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/ops/products/${productId}`);
+  }
+
+  bulkCreateProducts(body: BulkCreateProductsRequest): Observable<BulkCreateProductsResponse> {
+    return this.http.post<BulkCreateProductsResponse>(`${this.baseUrl}/ops/products/bulk`, body);
+  }
+
+  updateCategoryStation(body: UpdateCategoryStationRequest): Observable<void> {
+    return this.http.patch<void>(`${this.baseUrl}/ops/products/category-station`, body);
   }
 }

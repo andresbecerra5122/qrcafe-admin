@@ -71,6 +71,16 @@
     </button>
   </div>
 
+  <div class="filter-bar" *ngIf="!error() && canFilterByStation">
+    <button
+      *ngFor="let f of stationFilters"
+      class="filter-tab"
+      [class.active]="activeStationFilter === f.value"
+      (click)="setStationFilter(f.value)">
+      {{ f.label }}
+    </button>
+  </div>
+
   <!-- Loading -->
   <div *ngIf="loading()" class="loading">
     <div class="loading-icon">🍳</div>
@@ -78,18 +88,20 @@
   </div>
 
   <!-- Empty state -->
-  <div *ngIf="!loading() && !error() && orders().length === 0" class="empty">
+  <div *ngIf="!loading() && !error() && visibleOrders.length === 0" class="empty">
     <div class="empty-icon">✓</div>
     <p class="empty-title">Sin órdenes</p>
     <p class="empty-sub">No hay órdenes con este filtro.</p>
   </div>
 
   <!-- Order grid -->
-  <div *ngIf="!loading() && orders().length > 0" class="order-grid">
+  <div *ngIf="!loading() && visibleOrders.length > 0" class="order-grid">
     <app-order-card
-      *ngFor="let o of orders(); trackBy: trackByOrderId"
+      *ngFor="let o of visibleOrders; trackBy: trackByOrderId"
       [order]="o"
-      (statusChange)="onStatusChange($event)">
+      [stationFilter]="activeStationFilter"
+      (statusChange)="onStatusChange($event)"
+      (itemPreparedChange)="onItemPreparedChange($event)">
     </app-order-card>
   </div>
 </div>

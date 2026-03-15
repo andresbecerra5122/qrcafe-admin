@@ -1,6 +1,6 @@
-import { Component, Input, Output, EventEmitter, signal, computed } from '@angular/core';
+import { Component, Input, Output, EventEmitter, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { OpsOrder, OpsOrderItem } from '../../models/order.model';
+import { OpsOrder, OpsOrderItem, PrepStation } from '../../models/order.model';
 
 @Component({
   selector: 'app-order-card',
@@ -12,13 +12,15 @@ import { OpsOrder, OpsOrderItem } from '../../models/order.model';
 export class OrderCardComponent {
   @Input({ required: true }) order!: OpsOrder;
   @Input() mode: 'kitchen' | 'waiter' | 'delivery' = 'kitchen';
+  @Input() stationFilter: 'ALL' | PrepStation = 'ALL';
   @Output() statusChange = new EventEmitter<{ orderId: string; newStatus: string }>();
   @Output() collectOrder = new EventEmitter<{ orderId: string; paymentMethod: string }>();
   @Output() addProducts = new EventEmitter<{ orderId: string; tableNumber: number | null }>();
+  @Output() itemPreparedChange = new EventEmitter<{ orderId: string; itemId: string; value: boolean }>();
+  @Output() itemDeliveredChange = new EventEmitter<{ orderId: string; itemId: string; value: boolean }>();
 
   showCollectOptions = signal(false);
   itemsExpanded = signal(false);
-  checkedItems = signal<Set<number>>(new Set());
   expandedNotes = signal<Set<number>>(new Set());
 
   private readonly MAX_VISIBLE = 4;
@@ -77,11 +79,7 @@ export class OrderCardComponent {
 
   get nextAction(): { label: string; status: string } | null {
     if (this.mode === 'kitchen') {
-      switch (this.order.status) {
-        case 'CREATED':      return { label: 'Preparar', status: 'IN_PROGRESS' };
-        case 'IN_PROGRESS':  return { label: 'Listo', status: 'READY' };
-        default:             return null;
-      }
+      return null;
     } else if (this.mode === 'waiter') {
       switch (this.order.status) {
         case 'READY':           return { label: 'Entregado', status: 'DELIVERED' };
@@ -147,47 +145,80 @@ export class OrderCardComponent {
     });
   }
 
+  get filteredItems(): OpsOrderItem[] {
+    const items = this.order.items ?? [];
+    if (this.stationFilter === 'ALL') return items;
+    return items.filter(item => item.prepStation === this.stationFilter);
+  }
+
   get visibleItems(): OpsOrderItem[] {
-    const items = [...(this.order.items ?? [])].sort((a, b) => Number(a.isDone) - Number(b.isDone));
+    const items = [...this.filteredItems].sort((a, b) => Number(a.isPrepared) - Number(b.isPrepared));
     if (this.itemsExpanded() || items.length <= this.MAX_VISIBLE) return items;
     return items.slice(0, this.MAX_VISIBLE);
   }
 
   get hasMoreItems(): boolean {
-    return (this.order.items?.length ?? 0) > this.MAX_VISIBLE;
+    return this.filteredItems.length > this.MAX_VISIBLE;
   }
 
   get hiddenItemCount(): number {
-    return (this.order.items?.length ?? 0) - this.MAX_VISIBLE;
+    return this.filteredItems.length - this.MAX_VISIBLE;
+  }
+
+  get filteredItemsCount(): number {
+    return this.filteredItems.length;
   }
 
   toggleItemsExpanded() {
     this.itemsExpanded.update(v => !v);
   }
 
-  get checkboxesEnabled(): boolean {
+  get preparedCheckboxesEnabled(): boolean {
     return this.mode === 'kitchen'
-      && (this.order.status === 'IN_PROGRESS' || this.order.status === 'READY');
+      && (this.order.status === 'CREATED' || this.order.status === 'IN_PROGRESS' || this.order.status === 'READY');
   }
 
-  isChecked(index: number, item?: OpsOrderItem): boolean {
-    return !!item?.isDone || this.checkedItems().has(index);
+  get deliveredCheckboxesEnabled(): boolean {
+    return this.mode === 'waiter'
+      && (
+        this.order.status === 'CREATED'
+        || this.order.status === 'IN_PROGRESS'
+        || this.order.status === 'READY'
+        || this.order.status === 'DELIVERED'
+        || this.order.status === 'PAYMENT_PENDING'
+      );
   }
 
-  toggleCheck(index: number, item?: OpsOrderItem) {
-    if (item?.isDone) return;
-    this.checkedItems.update(s => {
-      const next = new Set(s);
-      if (next.has(index)) next.delete(index);
-      else next.add(index);
-      return next;
+  isPrepared(item?: OpsOrderItem): boolean {
+    return !!item?.isPrepared;
+  }
+
+  isDelivered(item?: OpsOrderItem): boolean {
+    return !!item?.isDelivered;
+  }
+
+  togglePrepared(item?: OpsOrderItem) {
+    if (!item) return;
+    this.itemPreparedChange.emit({
+      orderId: this.order.orderId,
+      itemId: item.itemId,
+      value: !item.isPrepared
+    });
+  }
+
+  toggleDelivered(item?: OpsOrderItem) {
+    if (!item) return;
+    this.itemDeliveredChange.emit({
+      orderId: this.order.orderId,
+      itemId: item.itemId,
+      value: !item.isDelivered
     });
   }
 
   shouldShowDoneDivider(index: number, item: OpsOrderItem, items: OpsOrderItem[]): boolean {
-    if (this.mode !== 'kitchen' || !item.isDone) return false;
+    if (this.mode !== 'kitchen' || !item.isPrepared) return false;
     if (index === 0) return true;
-    return !items[index - 1]?.isDone;
+    return !items[index - 1]?.isPrepared;
   }
 
   isNoteExpanded(index: number): boolean {

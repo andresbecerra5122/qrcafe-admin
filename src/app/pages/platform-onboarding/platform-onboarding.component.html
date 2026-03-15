@@ -90,6 +90,29 @@
     </div>
 
     <h2>Categorías y productos (opcional)</h2>
+    <div class="card subcard stack">
+      <p class="json-help">
+        Carga menú por JSON. Formatos soportados: <code>&#123; "menu": [...] &#125;</code>, <code>&#123; "categories": [...] &#125;</code> o <code>&#123; "products": [...] &#125;</code>.
+      </p>
+      <label>
+        <span>JSON menú</span>
+        <textarea
+          rows="7"
+          [(ngModel)]="menuJsonText"
+          name="menuJsonText"
+          placeholder='Pega aquí el JSON del menú'></textarea>
+      </label>
+      <label>
+        <span>Archivo .json (opcional)</span>
+        <input type="file" accept=".json,application/json" (change)="onMenuJsonFileSelected($event)" />
+      </label>
+      <div class="actions">
+        <button type="button" class="btn-secondary" (click)="importMenuFromJson()">Importar menú JSON</button>
+      </div>
+      <div *ngIf="menuImportError()" class="error">{{ menuImportError() }}</div>
+      <div *ngIf="menuImportSuccess()" class="success">{{ menuImportSuccess() }}</div>
+    </div>
+
     <button type="button" class="btn-secondary" (click)="addCategory()">+ Agregar categoría</button>
     <div *ngFor="let c of model.categories; let ci = index" class="card subcard">
       <div class="grid grid-2">
