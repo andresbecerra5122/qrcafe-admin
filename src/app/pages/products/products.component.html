@@ -24,6 +24,15 @@
         <span>Mesas / Meseros</span>
       </label>
 
+      <label class="setting-item setting-item--sub">
+        <input
+          type="checkbox"
+          [checked]="enablePayAtCashier()"
+          [disabled]="settingsSaving() || !enableDineIn()"
+          (change)="onTogglePayAtCashier($any($event.target).checked)" />
+        <span>Pago en caja (no en mesa)</span>
+      </label>
+
       <div class="tables-config">
         <div class="tables-config__summary">
           Mesas activas: <strong>{{ activeTablesCount() }}</strong>

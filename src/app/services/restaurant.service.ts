@@ -11,6 +11,7 @@ export interface RestaurantInfo {
   enableDelivery: boolean;
   enableDeliveryCash: boolean;
   enableDeliveryCard: boolean;
+  enablePayAtCashier: boolean;
   enableKitchenBarSplit: boolean;
 }
 
@@ -37,6 +38,7 @@ export class RestaurantService {
       enableDelivery?: boolean;
       enableDeliveryCash?: boolean;
       enableDeliveryCard?: boolean;
+      enablePayAtCashier?: boolean;
       enableKitchenBarSplit?: boolean;
     }
   ): Observable<RestaurantInfo> {

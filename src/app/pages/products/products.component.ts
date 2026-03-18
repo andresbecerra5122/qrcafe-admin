@@ -38,6 +38,7 @@ export class ProductsComponent implements OnInit {
   enableDelivery = signal(false);
   enableDeliveryCash = signal(true);
   enableDeliveryCard = signal(true);
+  enablePayAtCashier = signal(false);
   enableKitchenBarSplit = signal(false);
   activeTablesCount = signal(0);
   desiredTablesCount = signal<number | null>(null);
@@ -92,6 +93,7 @@ export class ProductsComponent implements OnInit {
         this.enableDelivery.set(info.enableDelivery);
         this.enableDeliveryCash.set(info.enableDeliveryCash);
         this.enableDeliveryCard.set(info.enableDeliveryCard);
+        this.enablePayAtCashier.set(info.enablePayAtCashier);
         this.enableKitchenBarSplit.set(info.enableKitchenBarSplit);
       }
     });
@@ -389,6 +391,7 @@ export class ProductsComponent implements OnInit {
         this.enableDelivery.set(info.enableDelivery);
         this.enableDeliveryCash.set(info.enableDeliveryCash);
         this.enableDeliveryCard.set(info.enableDeliveryCard);
+        this.enablePayAtCashier.set(info.enablePayAtCashier);
         this.enableKitchenBarSplit.set(info.enableKitchenBarSplit);
         this.settingsSaving.set(false);
       },
@@ -442,6 +445,7 @@ export class ProductsComponent implements OnInit {
         this.enableDelivery.set(info.enableDelivery);
         this.enableDeliveryCash.set(info.enableDeliveryCash);
         this.enableDeliveryCard.set(info.enableDeliveryCard);
+        this.enablePayAtCashier.set(info.enablePayAtCashier);
         this.enableKitchenBarSplit.set(info.enableKitchenBarSplit);
         this.settingsSaving.set(false);
       },
@@ -458,6 +462,7 @@ export class ProductsComponent implements OnInit {
         this.enableDelivery.set(info.enableDelivery);
         this.enableDeliveryCash.set(info.enableDeliveryCash);
         this.enableDeliveryCard.set(info.enableDeliveryCard);
+        this.enablePayAtCashier.set(info.enablePayAtCashier);
         this.enableKitchenBarSplit.set(info.enableKitchenBarSplit);
         this.settingsSaving.set(false);
       },
@@ -474,6 +479,7 @@ export class ProductsComponent implements OnInit {
         this.enableDelivery.set(info.enableDelivery);
         this.enableDeliveryCash.set(info.enableDeliveryCash);
         this.enableDeliveryCard.set(info.enableDeliveryCard);
+        this.enablePayAtCashier.set(info.enablePayAtCashier);
         this.enableKitchenBarSplit.set(info.enableKitchenBarSplit);
         this.settingsSaving.set(false);
       },
@@ -490,11 +496,29 @@ export class ProductsComponent implements OnInit {
         this.enableDelivery.set(info.enableDelivery);
         this.enableDeliveryCash.set(info.enableDeliveryCash);
         this.enableDeliveryCard.set(info.enableDeliveryCard);
+        this.enablePayAtCashier.set(info.enablePayAtCashier);
         this.enableKitchenBarSplit.set(info.enableKitchenBarSplit);
         if (!info.enableKitchenBarSplit) {
           this.newPrepStation = 'KITCHEN';
           this.editPrepStation = 'KITCHEN';
         }
+        this.settingsSaving.set(false);
+      },
+      error: () => this.settingsSaving.set(false)
+    });
+  }
+
+  onTogglePayAtCashier(nextValue: boolean): void {
+    if (!this.canManageSettings() || this.settingsSaving()) return;
+    this.settingsSaving.set(true);
+    this.restaurantService.updateSettings(this.restaurantId, { enablePayAtCashier: nextValue }).subscribe({
+      next: (info) => {
+        this.enableDineIn.set(info.enableDineIn);
+        this.enableDelivery.set(info.enableDelivery);
+        this.enableDeliveryCash.set(info.enableDeliveryCash);
+        this.enableDeliveryCard.set(info.enableDeliveryCard);
+        this.enablePayAtCashier.set(info.enablePayAtCashier);
+        this.enableKitchenBarSplit.set(info.enableKitchenBarSplit);
         this.settingsSaving.set(false);
       },
       error: () => this.settingsSaving.set(false)
