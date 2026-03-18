@@ -154,7 +154,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   get visibleOrders(): OpsOrder[] {
-    return this.orders().filter(o => this.hasItemsForActiveStation(o));
+    return this.orders()
+      .filter(o => !(o.orderType === 'DELIVERY' && (o.status === 'CREATED' || o.status === 'READY')))
+      .filter(o => this.hasItemsForActiveStation(o));
   }
 
   get canFilterByStation(): boolean {

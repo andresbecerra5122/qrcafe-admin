@@ -18,6 +18,7 @@ export class OrderCardComponent {
   @Output() addProducts = new EventEmitter<{ orderId: string; tableNumber: number | null }>();
   @Output() itemPreparedChange = new EventEmitter<{ orderId: string; itemId: string; value: boolean }>();
   @Output() itemDeliveredChange = new EventEmitter<{ orderId: string; itemId: string; value: boolean }>();
+  @Output() deliveryFeeChange = new EventEmitter<{ orderId: string; deliveryFee: number }>();
 
   showCollectOptions = signal(false);
   itemsExpanded = signal(false);
@@ -88,8 +89,11 @@ export class OrderCardComponent {
       }
     } else {
       switch (this.order.status) {
+        case 'CREATED': return { label: 'Enviar a cocina', status: 'IN_PROGRESS' };
         case 'READY': return { label: 'Salir a reparto', status: 'OUT_FOR_DELIVERY' };
         case 'OUT_FOR_DELIVERY': return { label: 'Entregado', status: 'DELIVERED' };
+        case 'DELIVERED': return { label: 'Marcar pagado', status: 'PAID' };
+        case 'PAYMENT_PENDING': return { label: 'Marcar pagado', status: 'PAID' };
         default: return null;
       }
     }
@@ -98,6 +102,9 @@ export class OrderCardComponent {
   get canCancel(): boolean {
     if (this.mode === 'kitchen') {
       return ['CREATED', 'IN_PROGRESS', 'READY'].includes(this.order.status);
+    }
+    if (this.mode === 'delivery') {
+      return ['CREATED', 'READY', 'OUT_FOR_DELIVERY', 'DELIVERED', 'PAYMENT_PENDING'].includes(this.order.status);
     }
     return false;
   }
@@ -118,6 +125,12 @@ export class OrderCardComponent {
       && (!!this.order.deliveryAddress || !!this.order.deliveryPhone || !!this.order.deliveryReference);
   }
 
+  get canEditDeliveryFee(): boolean {
+    return this.mode === 'delivery'
+      && this.order.orderType === 'DELIVERY'
+      && !['PAID', 'CANCELLED'].includes(this.order.status);
+  }
+
   onAdvance() {
     const action = this.nextAction;
     if (action) {
@@ -127,6 +140,22 @@ export class OrderCardComponent {
 
   onCancel() {
     this.statusChange.emit({ orderId: this.order.orderId, newStatus: 'CANCELLED' });
+  }
+
+  onEditDeliveryFee() {
+    if (!this.canEditDeliveryFee) return;
+    const current = Number(this.order.deliveryFee ?? 0);
+    const input = window.prompt('Ingresa el valor del domicilio (sin símbolos).', current.toFixed(0));
+    if (input === null) return;
+    const normalized = Number(input.replace(',', '.').trim());
+    if (Number.isNaN(normalized) || normalized < 0) {
+      window.alert('Valor de domicilio inválido. Debe ser un número mayor o igual a 0.');
+      return;
+    }
+    this.deliveryFeeChange.emit({
+      orderId: this.order.orderId,
+      deliveryFee: normalized
+    });
   }
 
   toggleCollectOptions() {

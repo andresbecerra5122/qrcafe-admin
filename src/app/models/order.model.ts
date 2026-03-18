@@ -23,6 +23,7 @@ export interface OpsOrder {
   paymentMethod: string | null;
   paymentRequestedAt: string | null;
   currency: string;
+  deliveryFee: number;
   total: number;
   createdAt: string;
   items: OpsOrderItem[];

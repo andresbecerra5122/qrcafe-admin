@@ -81,10 +81,20 @@
   </div>
 
   <!-- Total -->
+  <div *ngIf="order.orderType === 'DELIVERY'" class="delivery-fee-row">
+    <span>Domicilio</span>
+    <strong>{{ formatMoney(order.deliveryFee ?? 0) }}</strong>
+  </div>
   <div class="total">{{ formatMoney(order.total) }}</div>
 
+  <div *ngIf="canEditDeliveryFee" class="collect-section">
+    <button type="button" class="btn-collect btn-fee" (click)="onEditDeliveryFee()">
+      {{ (order.deliveryFee ?? 0) > 0 ? 'Editar domicilio' : 'Agregar domicilio' }}
+    </button>
+  </div>
+
   <!-- Payment method badge (prominent in waiter mode) -->
-  <div *ngIf="mode === 'waiter' && order.paymentMethod" class="payment-method-row">
+  <div *ngIf="(mode === 'waiter' || mode === 'delivery') && order.paymentMethod" class="payment-method-row">
     <span class="payment-badge" [attr.data-method]="order.paymentMethod">
       {{ order.paymentMethod === 'CASH' ? '💵 Efectivo' : '💳 Tarjeta' }}
     </span>

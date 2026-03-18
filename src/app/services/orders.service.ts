@@ -44,6 +44,13 @@ export class OrdersService {
     );
   }
 
+  setDeliveryFee(orderId: string, deliveryFee: number): Observable<void> {
+    return this.http.patch<void>(
+      `${this.baseUrl}/ops/orders/${orderId}/delivery-fee`,
+      { deliveryFee }
+    );
+  }
+
   collectOrder(orderId: string, paymentMethod: string): Observable<void> {
     return this.http.patch<void>(
       `${this.baseUrl}/ops/orders/${orderId}/collect`,

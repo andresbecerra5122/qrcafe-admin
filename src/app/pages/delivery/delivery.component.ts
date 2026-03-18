@@ -29,10 +29,14 @@ export class DeliveryComponent implements OnInit, OnDestroy {
   activeFilter = signal<string>('ACTIVE');
 
   filters: FilterTab[] = [
-    { label: 'Activos', value: 'ACTIVE', statusCsv: 'READY,OUT_FOR_DELIVERY' },
+    { label: 'Activos', value: 'ACTIVE', statusCsv: 'CREATED,IN_PROGRESS,READY,OUT_FOR_DELIVERY,DELIVERED,PAYMENT_PENDING' },
+    { label: 'Por confirmar', value: 'CREATED', statusCsv: 'CREATED' },
+    { label: 'En cocina', value: 'IN_PROGRESS', statusCsv: 'IN_PROGRESS' },
     { label: 'Listos', value: 'READY', statusCsv: 'READY' },
     { label: 'En reparto', value: 'OUT_FOR_DELIVERY', statusCsv: 'OUT_FOR_DELIVERY' },
     { label: 'Entregados', value: 'DELIVERED', statusCsv: 'DELIVERED' },
+    { label: 'Por cobrar', value: 'PAYMENT_PENDING', statusCsv: 'PAYMENT_PENDING' },
+    { label: 'Pagados', value: 'PAID', statusCsv: 'PAID' },
     { label: 'Todos', value: 'ALL', statusCsv: null }
   ];
 
@@ -95,6 +99,12 @@ export class DeliveryComponent implements OnInit, OnDestroy {
 
   onStatusChange(event: { orderId: string; newStatus: string }): void {
     this.ordersService.updateStatus(event.orderId, event.newStatus).subscribe({
+      next: () => this.fetchOrders()
+    });
+  }
+
+  onDeliveryFeeChange(event: { orderId: string; deliveryFee: number }): void {
+    this.ordersService.setDeliveryFee(event.orderId, event.deliveryFee).subscribe({
       next: () => this.fetchOrders()
     });
   }
