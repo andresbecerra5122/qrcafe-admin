@@ -75,6 +75,9 @@
             (change)="onToggleDelivery($any($event.target).checked)" />
           <span>Domicilio</span>
         </label>
+        <p class="settings-help">
+          Esta sección solo controla si el restaurante acepta pedidos de domicilio.
+        </p>
 
         <div class="delivery-subitems" [class.delivery-subitems--disabled]="!enableDelivery()">
           <label class="setting-item setting-item--sub">
@@ -94,6 +97,45 @@
               (change)="onToggleDeliveryCard($any($event.target).checked)" />
             <span>Tarjeta</span>
           </label>
+        </div>
+      </div>
+
+      <div class="payment-methods-settings">
+        <div class="tables-config__summary">
+          Métodos de cobro (máximo 6)
+        </div>
+        <p class="settings-help settings-help--strong">
+          Aplica para <strong>Mesas/Meseros</strong> y para <strong>Domicilio</strong>.
+        </p>
+        <div class="tables-config__controls">
+          <input
+            type="text"
+            class="create-input tables-config__input"
+            placeholder="Ej: Nequi, Daviplata, Transferencia"
+            [(ngModel)]="paymentMethodDraft"
+            [disabled]="paymentMethodsSaving() || paymentMethods().length >= 6" />
+          <button
+            type="button"
+            class="btn-create"
+            [disabled]="!canAddPaymentMethod()"
+            (click)="addPaymentMethod()">
+            {{ paymentMethodsSaving() ? 'Guardando...' : 'Agregar metodo' }}
+          </button>
+        </div>
+
+        <div class="payment-methods-list">
+          <div class="setting-item setting-item--sub" *ngFor="let pm of paymentMethods()">
+            <span>{{ pm.label }}</span>
+            <button
+              *ngIf="canDeletePaymentMethod(pm)"
+              type="button"
+              class="btn-row btn-row--danger"
+              [disabled]="deletingPaymentMethodId() === pm.id || paymentMethodsSaving()"
+              (click)="removePaymentMethod(pm)">
+              {{ deletingPaymentMethodId() === pm.id ? 'Eliminando...' : 'Eliminar' }}
+            </button>
+            <span *ngIf="!canDeletePaymentMethod(pm)" class="hint">Predeterminado</span>
+          </div>
         </div>
       </div>
     </div>

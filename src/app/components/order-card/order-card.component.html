@@ -95,8 +95,8 @@
 
   <!-- Payment method badge (prominent in waiter mode) -->
   <div *ngIf="(mode === 'waiter' || mode === 'delivery') && order.paymentMethod" class="payment-method-row">
-    <span class="payment-badge" [attr.data-method]="order.paymentMethod">
-      {{ order.paymentMethod === 'CASH' ? '💵 Efectivo' : '💳 Tarjeta' }}
+    <span class="payment-badge">
+      💳 {{ order.paymentMethod }}
     </span>
     <span *ngIf="waitingSince" class="waiting-since">Esperando {{ waitingSince }}</span>
   </div>
@@ -112,11 +112,11 @@
       Cobrar
     </button>
     <div *ngIf="showCollectOptions()" class="collect-options">
-      <button class="btn-collect-method btn-collect-cash" (click)="onCollect('CASH')">
-        Efectivo
-      </button>
-      <button class="btn-collect-method btn-collect-card" (click)="onCollect('CARD')">
-        Tarjeta
+      <button
+        *ngFor="let pm of visiblePaymentMethodOptions"
+        class="btn-collect-method btn-collect-cash"
+        (click)="onCollect(pm.code)">
+        {{ pm.label }}
       </button>
     </div>
   </div>

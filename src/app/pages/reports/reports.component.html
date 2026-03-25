@@ -68,16 +68,10 @@
       <p class="metric-value">{{ formatMoney(s.averageTicket) }}</p>
     </article>
 
-    <article class="metric-card">
-      <h3>Efectivo</h3>
-      <p class="metric-value">{{ formatMoney(s.cash.amount) }}</p>
-      <p class="metric-sub">{{ s.cash.ordersCount }} órdenes</p>
-    </article>
-
-    <article class="metric-card">
-      <h3>Tarjeta</h3>
-      <p class="metric-value">{{ formatMoney(s.card.amount) }}</p>
-      <p class="metric-sub">{{ s.card.ordersCount }} órdenes</p>
+    <article class="metric-card" *ngFor="let pm of s.paymentMethods">
+      <h3>{{ pm.methodLabel }}</h3>
+      <p class="metric-value">{{ formatMoney(pm.amount) }}</p>
+      <p class="metric-sub">{{ pm.ordersCount }} órdenes</p>
     </article>
   </section>
 
@@ -110,7 +104,7 @@
         <tbody>
           <tr *ngFor="let o of s.orders; trackBy: trackByOrderId">
             <td>#{{ o.orderNumber }}</td>
-            <td>{{ formatPaymentMethod(o.paymentMethod) }}</td>
+            <td>{{ formatPaymentMethod(o.paymentMethodLabel, o.paymentMethodCode) }}</td>
             <td>{{ formatUtcRange(o.occurredAtUtc) }}</td>
             <td>{{ formatMoney(o.total) }}</td>
           </tr>

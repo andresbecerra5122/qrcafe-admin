@@ -2,7 +2,7 @@ import { Component, OnDestroy, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { OrdersService } from '../../services/orders.service';
-import { RestaurantService } from '../../services/restaurant.service';
+import { PaymentMethodOption, RestaurantService } from '../../services/restaurant.service';
 import { AuthService } from '../../services/auth.service';
 import { OpsOrder } from '../../models/order.model';
 import { OrderCardComponent } from '../../components/order-card/order-card.component';
@@ -27,6 +27,7 @@ export class DeliveryComponent implements OnInit, OnDestroy {
   loading = signal(true);
   error = signal<string | null>(null);
   activeFilter = signal<string>('ACTIVE');
+  paymentMethods = signal<PaymentMethodOption[]>([]);
 
   filters: FilterTab[] = [
     { label: 'Activos', value: 'ACTIVE', statusCsv: 'CREATED,IN_PROGRESS,READY,OUT_FOR_DELIVERY,DELIVERED,PAYMENT_PENDING' },
@@ -59,7 +60,10 @@ export class DeliveryComponent implements OnInit, OnDestroy {
     }
 
     this.restaurantService.getInfo(this.restaurantId).subscribe({
-      next: (info) => this.restaurantName.set(info.name)
+      next: (info) => {
+        this.restaurantName.set(info.name);
+        this.paymentMethods.set(info.paymentMethods ?? []);
+      }
     });
 
     this.fetchOrders();
@@ -105,6 +109,12 @@ export class DeliveryComponent implements OnInit, OnDestroy {
 
   onDeliveryFeeChange(event: { orderId: string; deliveryFee: number }): void {
     this.ordersService.setDeliveryFee(event.orderId, event.deliveryFee).subscribe({
+      next: () => this.fetchOrders()
+    });
+  }
+
+  onCollect(event: { orderId: string; paymentMethod: string }): void {
+    this.ordersService.collectOrder(event.orderId, event.paymentMethod).subscribe({
       next: () => this.fetchOrders()
     });
   }

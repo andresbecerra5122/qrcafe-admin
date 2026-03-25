@@ -1,6 +1,7 @@
 import { Component, Input, Output, EventEmitter, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { OpsOrder, OpsOrderItem, PrepStation } from '../../models/order.model';
+import { PaymentMethodOption } from '../../services/restaurant.service';
 
 @Component({
   selector: 'app-order-card',
@@ -13,6 +14,7 @@ export class OrderCardComponent {
   @Input({ required: true }) order!: OpsOrder;
   @Input() mode: 'kitchen' | 'waiter' | 'delivery' = 'kitchen';
   @Input() stationFilter: 'ALL' | PrepStation = 'ALL';
+  @Input() paymentMethodOptions: PaymentMethodOption[] = [];
   @Output() statusChange = new EventEmitter<{ orderId: string; newStatus: string }>();
   @Output() collectOrder = new EventEmitter<{ orderId: string; paymentMethod: string }>();
   @Output() addProducts = new EventEmitter<{ orderId: string; tableNumber: number | null }>();
@@ -84,7 +86,6 @@ export class OrderCardComponent {
     } else if (this.mode === 'waiter') {
       switch (this.order.status) {
         case 'READY':           return { label: 'Entregado', status: 'DELIVERED' };
-        case 'PAYMENT_PENDING': return { label: 'Cobrado', status: 'PAID' };
         default:                return null;
       }
     } else {
@@ -92,8 +93,6 @@ export class OrderCardComponent {
         case 'CREATED': return { label: 'Enviar a cocina', status: 'IN_PROGRESS' };
         case 'READY': return { label: 'Salir a reparto', status: 'OUT_FOR_DELIVERY' };
         case 'OUT_FOR_DELIVERY': return { label: 'Entregado', status: 'DELIVERED' };
-        case 'DELIVERED': return { label: 'Marcar pagado', status: 'PAID' };
-        case 'PAYMENT_PENDING': return { label: 'Marcar pagado', status: 'PAID' };
         default: return null;
       }
     }
@@ -110,7 +109,9 @@ export class OrderCardComponent {
   }
 
   get showCollectBtn(): boolean {
-    return this.mode === 'waiter' && this.order.status === 'DELIVERED';
+    if (this.paymentMethodOptions.length === 0) return false;
+    const paymentStatuses = this.order.status === 'DELIVERED' || this.order.status === 'PAYMENT_PENDING';
+    return (this.mode === 'waiter' || this.mode === 'delivery') && paymentStatuses;
   }
 
   get showAddProductsBtn(): boolean {
@@ -165,6 +166,10 @@ export class OrderCardComponent {
   onCollect(method: string) {
     this.collectOrder.emit({ orderId: this.order.orderId, paymentMethod: method });
     this.showCollectOptions.set(false);
+  }
+
+  get visiblePaymentMethodOptions(): PaymentMethodOption[] {
+    return [...this.paymentMethodOptions].sort((a, b) => a.sort - b.sort);
   }
 
   onAddProducts() {

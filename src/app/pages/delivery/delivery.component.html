@@ -40,7 +40,9 @@
       *ngFor="let o of orders(); trackBy: trackByOrderId"
       [order]="o"
       [mode]="'delivery'"
+      [paymentMethodOptions]="paymentMethods()"
       (statusChange)="onStatusChange($event)"
+      (collectOrder)="onCollect($event)"
       (deliveryFeeChange)="onDeliveryFeeChange($event)">
     </app-order-card>
   </div>

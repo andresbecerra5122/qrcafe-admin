@@ -142,9 +142,9 @@ export class ReportsComponent implements OnInit {
     return new Date(isoDate).toLocaleString('es-CO', { timeZone: 'UTC' }) + ' UTC';
   }
 
-  formatPaymentMethod(method: string | null): string {
-    if (method === 'CASH') return 'Efectivo';
-    if (method === 'CARD') return 'Tarjeta';
+  formatPaymentMethod(methodLabel: string | null, methodCode: string | null): string {
+    if (methodLabel?.trim()) return methodLabel;
+    if (methodCode?.trim()) return methodCode;
     return 'N/A';
   }
 

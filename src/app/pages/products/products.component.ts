@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { CreateProductRequest, ProductsService } from '../../services/products.service';
-import { RestaurantService } from '../../services/restaurant.service';
+import { PaymentMethodOption, RestaurantService } from '../../services/restaurant.service';
 import { TablesService } from '../../services/tables.service';
 import { AuthService } from '../../services/auth.service';
 import { OpsProduct } from '../../models/product.model';
@@ -47,6 +47,10 @@ export class ProductsComponent implements OnInit {
   bulkJsonText = '';
   bulkImportError = signal<string | null>(null);
   bulkImportSuccess = signal<string | null>(null);
+  paymentMethods = signal<PaymentMethodOption[]>([]);
+  paymentMethodDraft = '';
+  paymentMethodsSaving = signal(false);
+  deletingPaymentMethodId = signal<string | null>(null);
 
   newName = '';
   newDescription = '';
@@ -95,6 +99,7 @@ export class ProductsComponent implements OnInit {
         this.enableDeliveryCard.set(info.enableDeliveryCard);
         this.enablePayAtCashier.set(info.enablePayAtCashier);
         this.enableKitchenBarSplit.set(info.enableKitchenBarSplit);
+        this.paymentMethods.set(info.paymentMethods ?? []);
       }
     });
 
@@ -393,6 +398,7 @@ export class ProductsComponent implements OnInit {
         this.enableDeliveryCard.set(info.enableDeliveryCard);
         this.enablePayAtCashier.set(info.enablePayAtCashier);
         this.enableKitchenBarSplit.set(info.enableKitchenBarSplit);
+        this.paymentMethods.set(info.paymentMethods ?? []);
         this.settingsSaving.set(false);
       },
       error: () => this.settingsSaving.set(false)
@@ -447,6 +453,7 @@ export class ProductsComponent implements OnInit {
         this.enableDeliveryCard.set(info.enableDeliveryCard);
         this.enablePayAtCashier.set(info.enablePayAtCashier);
         this.enableKitchenBarSplit.set(info.enableKitchenBarSplit);
+        this.paymentMethods.set(info.paymentMethods ?? []);
         this.settingsSaving.set(false);
       },
       error: () => this.settingsSaving.set(false)
@@ -464,6 +471,7 @@ export class ProductsComponent implements OnInit {
         this.enableDeliveryCard.set(info.enableDeliveryCard);
         this.enablePayAtCashier.set(info.enablePayAtCashier);
         this.enableKitchenBarSplit.set(info.enableKitchenBarSplit);
+        this.paymentMethods.set(info.paymentMethods ?? []);
         this.settingsSaving.set(false);
       },
       error: () => this.settingsSaving.set(false)
@@ -481,6 +489,7 @@ export class ProductsComponent implements OnInit {
         this.enableDeliveryCard.set(info.enableDeliveryCard);
         this.enablePayAtCashier.set(info.enablePayAtCashier);
         this.enableKitchenBarSplit.set(info.enableKitchenBarSplit);
+        this.paymentMethods.set(info.paymentMethods ?? []);
         this.settingsSaving.set(false);
       },
       error: () => this.settingsSaving.set(false)
@@ -498,6 +507,7 @@ export class ProductsComponent implements OnInit {
         this.enableDeliveryCard.set(info.enableDeliveryCard);
         this.enablePayAtCashier.set(info.enablePayAtCashier);
         this.enableKitchenBarSplit.set(info.enableKitchenBarSplit);
+        this.paymentMethods.set(info.paymentMethods ?? []);
         if (!info.enableKitchenBarSplit) {
           this.newPrepStation = 'KITCHEN';
           this.editPrepStation = 'KITCHEN';
@@ -519,10 +529,55 @@ export class ProductsComponent implements OnInit {
         this.enableDeliveryCard.set(info.enableDeliveryCard);
         this.enablePayAtCashier.set(info.enablePayAtCashier);
         this.enableKitchenBarSplit.set(info.enableKitchenBarSplit);
+        this.paymentMethods.set(info.paymentMethods ?? []);
         this.settingsSaving.set(false);
       },
       error: () => this.settingsSaving.set(false)
     });
+  }
+
+  canAddPaymentMethod(): boolean {
+    return this.canManageSettings()
+      && this.paymentMethodDraft.trim().length > 0
+      && this.paymentMethods().length < 6
+      && !this.paymentMethodsSaving();
+  }
+
+  addPaymentMethod(): void {
+    if (!this.canAddPaymentMethod()) return;
+    this.paymentMethodsSaving.set(true);
+    const label = this.paymentMethodDraft.trim();
+    this.restaurantService.addPaymentMethod(this.restaurantId, label).subscribe({
+      next: (item) => {
+        this.paymentMethods.update(list => [...list, item].sort((a, b) => a.sort - b.sort));
+        this.paymentMethodDraft = '';
+        this.paymentMethodsSaving.set(false);
+      },
+      error: () => {
+        this.paymentMethodsSaving.set(false);
+      }
+    });
+  }
+
+  removePaymentMethod(method: PaymentMethodOption): void {
+    if (!this.canManageSettings() || this.paymentMethodsSaving()) return;
+    if (!this.canDeletePaymentMethod(method)) return;
+    const ok = confirm(`Eliminar metodo de pago "${method.label}"?`);
+    if (!ok) return;
+    this.deletingPaymentMethodId.set(method.id);
+    this.restaurantService.deletePaymentMethod(this.restaurantId, method.id).subscribe({
+      next: () => {
+        this.paymentMethods.update(list => list.filter(x => x.id !== method.id));
+        this.deletingPaymentMethodId.set(null);
+      },
+      error: () => {
+        this.deletingPaymentMethodId.set(null);
+      }
+    });
+  }
+
+  canDeletePaymentMethod(method: PaymentMethodOption): boolean {
+    return method.code !== 'CASH' && method.code !== 'CARD';
   }
 
   private fetchTablesCount(): void {

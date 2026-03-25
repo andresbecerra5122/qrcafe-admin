@@ -13,6 +13,14 @@ export interface RestaurantInfo {
   enableDeliveryCard: boolean;
   enablePayAtCashier: boolean;
   enableKitchenBarSplit: boolean;
+  paymentMethods: PaymentMethodOption[];
+}
+
+export interface PaymentMethodOption {
+  id: string;
+  code: string;
+  label: string;
+  sort: number;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -50,5 +58,43 @@ export class RestaurantService {
           this.cache.set(restaurantId, { ...current, ...info });
         }
       }));
+  }
+
+  getPaymentMethods(restaurantId: string): Observable<PaymentMethodOption[]> {
+    return this.http.get<PaymentMethodOption[]>(
+      `${this.baseUrl}/ops/restaurant/payment-methods?restaurantId=${restaurantId}`
+    ).pipe(tap(methods => {
+      const current = this.cache.get(restaurantId);
+      if (current) {
+        this.cache.set(restaurantId, { ...current, paymentMethods: methods });
+      }
+    }));
+  }
+
+  addPaymentMethod(restaurantId: string, label: string): Observable<PaymentMethodOption> {
+    return this.http.post<PaymentMethodOption>(
+      `${this.baseUrl}/ops/restaurant/payment-methods?restaurantId=${restaurantId}`,
+      { label }
+    ).pipe(tap(item => {
+      const current = this.cache.get(restaurantId);
+      if (current) {
+        const next = [...(current.paymentMethods ?? []), item].sort((a, b) => a.sort - b.sort);
+        this.cache.set(restaurantId, { ...current, paymentMethods: next });
+      }
+    }));
+  }
+
+  deletePaymentMethod(restaurantId: string, methodId: string): Observable<void> {
+    return this.http.delete<void>(
+      `${this.baseUrl}/ops/restaurant/payment-methods/${methodId}?restaurantId=${restaurantId}`
+    ).pipe(tap(() => {
+      const current = this.cache.get(restaurantId);
+      if (current) {
+        this.cache.set(restaurantId, {
+          ...current,
+          paymentMethods: (current.paymentMethods ?? []).filter(x => x.id !== methodId)
+        });
+      }
+    }));
   }
 }

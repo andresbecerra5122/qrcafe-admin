@@ -46,8 +46,24 @@
   @apply flex flex-col gap-2;
 }
 
+.payment-methods-settings {
+  @apply flex flex-col gap-2 bg-amber-50/60 border border-amber-100 rounded-xl px-3 py-3;
+}
+
 .delivery-subitems {
   @apply flex flex-wrap gap-2 pl-6;
+}
+
+.payment-methods-list {
+  @apply flex flex-wrap gap-2;
+}
+
+.settings-help {
+  @apply text-xs text-stone-500;
+}
+
+.settings-help--strong {
+  @apply text-amber-800;
 }
 
 .delivery-subitems--disabled {

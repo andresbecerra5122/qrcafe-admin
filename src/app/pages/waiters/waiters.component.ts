@@ -4,7 +4,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
 import { OrdersService } from '../../services/orders.service';
 import { WaiterCallsService } from '../../services/waiter-calls.service';
-import { RestaurantService } from '../../services/restaurant.service';
+import { PaymentMethodOption, RestaurantService } from '../../services/restaurant.service';
 import { AuthService } from '../../services/auth.service';
 import { OpsOrder } from '../../models/order.model';
 import { WaiterCall } from '../../models/waiter-call.model';
@@ -32,6 +32,7 @@ export class WaitersComponent implements OnInit, OnDestroy {
   error = signal<string | null>(null);
   activeFilter = signal<string>('ACTIVE');
   waiterAlert = signal<string | null>(null);
+  paymentMethods = signal<PaymentMethodOption[]>([]);
   private readonly orderTypeFilter = 'DINE_IN,TAKEAWAY';
 
   filters: FilterTab[] = [
@@ -70,7 +71,10 @@ export class WaitersComponent implements OnInit, OnDestroy {
     }
 
     this.restaurantService.getInfo(this.restaurantId).subscribe({
-      next: (info) => this.restaurantName.set(info.name)
+      next: (info) => {
+        this.restaurantName.set(info.name);
+        this.paymentMethods.set(info.paymentMethods ?? []);
+      }
     });
 
     this.fetchAll();

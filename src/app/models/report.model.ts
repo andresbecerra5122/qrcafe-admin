@@ -10,8 +10,16 @@ export interface SalesSummaryOrderItem {
   orderId: string;
   orderNumber: number;
   total: number;
-  paymentMethod: string | null;
+  paymentMethodCode: string | null;
+  paymentMethodLabel: string | null;
   occurredAtUtc: string;
+}
+
+export interface SalesPaymentMethodBreakdown {
+  methodCode: string;
+  methodLabel: string;
+  amount: number;
+  ordersCount: number;
 }
 
 export interface ProductSalesSummaryItem {
@@ -30,8 +38,7 @@ export interface SalesSummary {
   paidOrdersCount: number;
   totalSales: number;
   averageTicket: number;
-  cash: PaymentMethodSummary;
-  card: PaymentMethodSummary;
+  paymentMethods: SalesPaymentMethodBreakdown[];
   orders: SalesSummaryOrderItem[];
 }
 
