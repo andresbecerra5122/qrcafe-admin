@@ -13,6 +13,7 @@ export interface RestaurantInfo {
   enableDeliveryCard: boolean;
   enablePayAtCashier: boolean;
   enableKitchenBarSplit: boolean;
+  avgPreparationMinutes: number;
   paymentMethods: PaymentMethodOption[];
 }
 
@@ -48,6 +49,7 @@ export class RestaurantService {
       enableDeliveryCard?: boolean;
       enablePayAtCashier?: boolean;
       enableKitchenBarSplit?: boolean;
+      avgPreparationMinutes?: number;
     }
   ): Observable<RestaurantInfo> {
     return this.http

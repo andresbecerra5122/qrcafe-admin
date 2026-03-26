@@ -196,6 +196,14 @@
   @apply flex items-center justify-between gap-3 flex-wrap;
 }
 
+.category-controls {
+  @apply flex items-center gap-3 flex-wrap;
+}
+
+.category-visibility-controls {
+  @apply flex items-center gap-2;
+}
+
 .category-title {
   @apply text-sm font-bold text-amber-700 uppercase tracking-wider
     border-b border-orange-100 pb-2;

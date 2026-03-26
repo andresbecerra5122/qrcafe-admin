@@ -57,6 +57,30 @@
         <p *ngIf="tablesError()" class="tables-config__error">{{ tablesError() }}</p>
       </div>
 
+      <div class="tables-config">
+        <div class="tables-config__summary">
+          Tiempo preparación cocina estimado
+        </div>
+        <div class="tables-config__controls">
+          <input
+            type="number"
+            min="1"
+            max="600"
+            class="create-input tables-config__input"
+            [ngModel]="avgPreparationMinutesDraft()"
+            [disabled]="settingsSaving()"
+            (ngModelChange)="onAvgPreparationMinutesInput($event)" />
+          <span class="hint">min</span>
+          <button
+            type="button"
+            class="btn-create"
+            [disabled]="settingsSaving() || avgPreparationMinutesDraft() == null || avgPreparationMinutesDraft() === avgPreparationMinutes()"
+            (click)="saveAvgPreparationMinutes()">
+            {{ settingsSaving() ? 'Guardando...' : 'Guardar tiempo' }}
+          </button>
+        </div>
+      </div>
+
       <label class="setting-item">
         <input
           type="checkbox"
@@ -209,7 +233,22 @@
     <section *ngFor="let group of groupedProducts()" class="category-section">
       <div class="category-header">
         <h2 class="category-title">{{ group.category }}</h2>
-        <div *ngIf="adminPanel && enableKitchenBarSplit() && group.rawCategoryName" class="category-station-controls">
+        <div *ngIf="adminPanel" class="category-controls">
+          <div class="category-visibility-controls">
+            <button
+              class="toggle-switch"
+              [class.toggle-on]="categoryVisible(group)"
+              [class.toggle-off]="!categoryVisible(group)"
+              [disabled]="saving()"
+              (click)="toggleCategoryVisibility(group)">
+              <span class="toggle-knob"></span>
+            </button>
+            <span class="toggle-label" [class.available]="categoryVisible(group)">
+              {{ categoryVisible(group) ? 'Categoría visible' : 'Categoría oculta' }}
+            </span>
+          </div>
+
+          <div *ngIf="enableKitchenBarSplit() && group.rawCategoryName" class="category-station-controls">
           <select
             class="create-input category-station-select"
             [ngModel]="categoryStationSelection(group)"
@@ -225,6 +264,7 @@
             (click)="applyCategoryStation(group)">
             Aplicar a categoría
           </button>
+          </div>
         </div>
       </div>
 
