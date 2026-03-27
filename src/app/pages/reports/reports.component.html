@@ -68,6 +68,11 @@
       <p class="metric-value">{{ formatMoney(s.averageTicket) }}</p>
     </article>
 
+    <article class="metric-card">
+      <h3>Propina total</h3>
+      <p class="metric-value">{{ formatMoney(s.tipTotal) }}</p>
+    </article>
+
     <article class="metric-card" *ngFor="let pm of s.paymentMethods">
       <h3>{{ pm.methodLabel }}</h3>
       <p class="metric-value">{{ formatMoney(pm.amount) }}</p>
@@ -98,6 +103,7 @@
             <th>Orden</th>
             <th>Método</th>
             <th>Fecha (UTC)</th>
+            <th>Propina</th>
             <th>Total</th>
           </tr>
         </thead>
@@ -106,6 +112,7 @@
             <td>#{{ o.orderNumber }}</td>
             <td>{{ formatPaymentMethod(o.paymentMethodLabel, o.paymentMethodCode) }}</td>
             <td>{{ formatUtcRange(o.occurredAtUtc) }}</td>
+            <td>{{ formatMoney(o.tipAmount) }}</td>
             <td>{{ formatMoney(o.total) }}</td>
           </tr>
         </tbody>
@@ -122,6 +129,11 @@
     <article class="metric-card">
       <h3>Valor generado</h3>
       <p class="metric-value">{{ formatMoney(p.totalRevenue) }}</p>
+    </article>
+
+    <article class="metric-card">
+      <h3>Propina total</h3>
+      <p class="metric-value">{{ formatMoney(p.tipTotal) }}</p>
     </article>
   </section>
 

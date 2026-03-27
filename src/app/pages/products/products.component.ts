@@ -43,6 +43,8 @@ export class ProductsComponent implements OnInit {
   enableKitchenBarSplit = signal(false);
   avgPreparationMinutes = signal(15);
   avgPreparationMinutesDraft = signal<number | null>(15);
+  suggestedTipPercent = signal(10);
+  suggestedTipPercentDraft = signal<number | null>(10);
   activeTablesCount = signal(0);
   desiredTablesCount = signal<number | null>(null);
   tablesSaving = signal(false);
@@ -482,6 +484,32 @@ export class ProductsComponent implements OnInit {
     });
   }
 
+  onSuggestedTipPercentInput(value: unknown): void {
+    const parsed = typeof value === 'number' ? value : Number.parseFloat(String(value));
+    if (!Number.isFinite(parsed)) {
+      this.suggestedTipPercentDraft.set(null);
+      return;
+    }
+    const normalized = Math.max(0, Math.min(100, parsed));
+    this.suggestedTipPercentDraft.set(Math.round(normalized * 100) / 100);
+  }
+
+  saveSuggestedTipPercent(): void {
+    if (!this.canManageSettings() || this.settingsSaving()) return;
+    const nextValue = this.suggestedTipPercentDraft();
+    if (nextValue == null) return;
+    if (nextValue === this.suggestedTipPercent()) return;
+
+    this.settingsSaving.set(true);
+    this.restaurantService.updateSettings(this.restaurantId, { suggestedTipPercent: nextValue }).subscribe({
+      next: (info) => {
+        this.applyRestaurantInfo(info);
+        this.settingsSaving.set(false);
+      },
+      error: () => this.settingsSaving.set(false)
+    });
+  }
+
   onToggleDelivery(nextValue: boolean): void {
     if (!this.canManageSettings() || this.settingsSaving()) return;
 
@@ -612,6 +640,7 @@ export class ProductsComponent implements OnInit {
     enablePayAtCashier: boolean;
     enableKitchenBarSplit: boolean;
     avgPreparationMinutes: number;
+    suggestedTipPercent: number;
     paymentMethods?: PaymentMethodOption[];
   }): void {
     this.enableDineIn.set(info.enableDineIn);
@@ -622,6 +651,8 @@ export class ProductsComponent implements OnInit {
     this.enableKitchenBarSplit.set(info.enableKitchenBarSplit);
     this.avgPreparationMinutes.set(info.avgPreparationMinutes ?? 15);
     this.avgPreparationMinutesDraft.set(info.avgPreparationMinutes ?? 15);
+    this.suggestedTipPercent.set(info.suggestedTipPercent ?? 10);
+    this.suggestedTipPercentDraft.set(info.suggestedTipPercent ?? 10);
     this.paymentMethods.set(info.paymentMethods ?? []);
   }
 

@@ -72,65 +72,126 @@
     <p *ngIf="loading()">Cargando...</p>
     <p *ngIf="error()" class="error">{{ error() }}</p>
 
-    <table *ngIf="!loading() && !error()">
-      <thead>
-        <tr>
-          <th>Nombre</th>
-          <th>Email</th>
-          <th>Rol</th>
-          <th>Estado</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        <ng-container *ngFor="let user of staff()">
+    <div class="table-wrap table-wrap--desktop" *ngIf="!loading() && !error()">
+      <table>
+        <thead>
           <tr>
-            <td>{{ user.fullName }}</td>
-            <td>{{ user.email }}</td>
-            <td>{{ user.role }}</td>
-            <td>{{ user.isActive ? 'Activo' : 'Inactivo' }}</td>
-            <td>
-              <button
-                [disabled]="saving() || !canManage(user)"
-                (click)="toggleActive(user)">
-                {{ user.isActive ? 'Desactivar' : 'Activar' }}
-              </button>
-              <button
-                [disabled]="saving() || !canManage(user)"
-                (click)="startResetPassword(user)">
-                Cambiar contraseña
-              </button>
-            </td>
+            <th>Nombre</th>
+            <th>Email</th>
+            <th>Rol</th>
+            <th>Estado</th>
+            <th>Acciones</th>
           </tr>
-          <tr *ngIf="resettingUserId() === user.id" class="reset-row">
-            <td colspan="5">
-              <div class="reset-box">
-                <h3>Actualizar contraseña de {{ user.fullName }}</h3>
-                <div class="reset-form">
-                  <input
-                    type="password"
-                    [(ngModel)]="resetPasswordValue"
-                    name="resetPasswordValue"
-                    placeholder="Nueva contraseña (mínimo 8 caracteres)" />
-                  <button
-                    type="button"
-                    [disabled]="saving()"
-                    (click)="saveResetPasswordById(user.id)">
-                    Guardar contraseña
-                  </button>
-                  <button
-                    type="button"
-                    [disabled]="saving()"
-                    (click)="cancelResetPassword()">
-                    Cancelar
-                  </button>
+        </thead>
+        <tbody>
+          <ng-container *ngFor="let user of staff()">
+            <tr>
+              <td>{{ user.fullName }}</td>
+              <td>{{ user.email }}</td>
+              <td>{{ user.role }}</td>
+              <td>{{ user.isActive ? 'Activo' : 'Inactivo' }}</td>
+              <td>
+                <button
+                  [disabled]="saving() || !canManage(user)"
+                  (click)="toggleActive(user)">
+                  {{ user.isActive ? 'Desactivar' : 'Activar' }}
+                </button>
+                <button
+                  [disabled]="saving() || !canManage(user)"
+                  (click)="startResetPassword(user)">
+                  Cambiar contraseña
+                </button>
+              </td>
+            </tr>
+            <tr *ngIf="resettingUserId() === user.id" class="reset-row">
+              <td colspan="5">
+                <div class="reset-box">
+                  <h3>Actualizar contraseña de {{ user.fullName }}</h3>
+                  <div class="reset-form">
+                    <input
+                      type="password"
+                      [(ngModel)]="resetPasswordValue"
+                      name="resetPasswordValue"
+                      placeholder="Nueva contraseña (mínimo 8 caracteres)" />
+                    <button
+                      type="button"
+                      [disabled]="saving()"
+                      (click)="saveResetPasswordById(user.id)">
+                      Guardar contraseña
+                    </button>
+                    <button
+                      type="button"
+                      [disabled]="saving()"
+                      (click)="cancelResetPassword()">
+                      Cancelar
+                    </button>
+                  </div>
                 </div>
-              </div>
-            </td>
-          </tr>
-        </ng-container>
-      </tbody>
-    </table>
+              </td>
+            </tr>
+          </ng-container>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="staff-cards" *ngIf="!loading() && !error()">
+      <ng-container *ngFor="let user of staff()">
+        <div class="staff-card">
+          <div class="staff-card__row">
+            <span class="staff-card__label">Nombre</span>
+            <span class="staff-card__value">{{ user.fullName }}</span>
+          </div>
+          <div class="staff-card__row">
+            <span class="staff-card__label">Email</span>
+            <span class="staff-card__value staff-card__value--break">{{ user.email }}</span>
+          </div>
+          <div class="staff-card__row">
+            <span class="staff-card__label">Rol</span>
+            <span class="staff-card__value">{{ user.role }}</span>
+          </div>
+          <div class="staff-card__row">
+            <span class="staff-card__label">Estado</span>
+            <span class="staff-card__value">{{ user.isActive ? 'Activo' : 'Inactivo' }}</span>
+          </div>
+          <div class="staff-card__actions">
+            <button
+              type="button"
+              [disabled]="saving() || !canManage(user)"
+              (click)="toggleActive(user)">
+              {{ user.isActive ? 'Desactivar' : 'Activar' }}
+            </button>
+            <button
+              type="button"
+              [disabled]="saving() || !canManage(user)"
+              (click)="startResetPassword(user)">
+              Cambiar contraseña
+            </button>
+          </div>
+          <div *ngIf="resettingUserId() === user.id" class="reset-box reset-box--card">
+            <h3>Actualizar contraseña de {{ user.fullName }}</h3>
+            <div class="reset-form reset-form--card">
+              <input
+                type="password"
+                [(ngModel)]="resetPasswordValue"
+                name="resetPasswordValueCard"
+                placeholder="Nueva contraseña (mínimo 8 caracteres)" />
+              <button
+                type="button"
+                [disabled]="saving()"
+                (click)="saveResetPasswordById(user.id)">
+                Guardar contraseña
+              </button>
+              <button
+                type="button"
+                [disabled]="saving()"
+                (click)="cancelResetPassword()">
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>
+      </ng-container>
+    </div>
 
     <p *ngIf="resetError()" class="error">{{ resetError() }}</p>
     <p *ngIf="resetSuccess()" class="success">{{ resetSuccess() }}</p>

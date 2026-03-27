@@ -10,6 +10,7 @@ export interface SalesSummaryOrderItem {
   orderId: string;
   orderNumber: number;
   total: number;
+  tipAmount: number;
   paymentMethodCode: string | null;
   paymentMethodLabel: string | null;
   occurredAtUtc: string;
@@ -37,6 +38,7 @@ export interface SalesSummary {
   rangeEndUtc: string;
   paidOrdersCount: number;
   totalSales: number;
+  tipTotal: number;
   averageTicket: number;
   paymentMethods: SalesPaymentMethodBreakdown[];
   orders: SalesSummaryOrderItem[];
@@ -50,6 +52,7 @@ export interface ProductSalesSummary {
   rangeEndUtc: string;
   totalItemsSold: number;
   totalRevenue: number;
+  tipTotal: number;
   products: ProductSalesSummaryItem[];
 }
 

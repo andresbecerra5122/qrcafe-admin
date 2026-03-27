@@ -28,6 +28,7 @@ export class DeliveryComponent implements OnInit, OnDestroy {
   error = signal<string | null>(null);
   activeFilter = signal<string>('ACTIVE');
   paymentMethods = signal<PaymentMethodOption[]>([]);
+  suggestedTipPercent = signal(10);
 
   filters: FilterTab[] = [
     { label: 'Activos', value: 'ACTIVE', statusCsv: 'CREATED,IN_PROGRESS,READY,OUT_FOR_DELIVERY,DELIVERED,PAYMENT_PENDING' },
@@ -63,6 +64,7 @@ export class DeliveryComponent implements OnInit, OnDestroy {
       next: (info) => {
         this.restaurantName.set(info.name);
         this.paymentMethods.set(info.paymentMethods ?? []);
+        this.suggestedTipPercent.set(info.suggestedTipPercent ?? 10);
       }
     });
 

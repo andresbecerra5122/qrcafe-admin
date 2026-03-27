@@ -15,8 +15,10 @@ export class OrderCardComponent {
   @Input() mode: 'kitchen' | 'waiter' | 'delivery' = 'kitchen';
   @Input() stationFilter: 'ALL' | PrepStation = 'ALL';
   @Input() paymentMethodOptions: PaymentMethodOption[] = [];
+  /** Configured restaurant suggested tip % (dine-in collect modal). */
+  @Input() suggestedTipPercent = 10;
   @Output() statusChange = new EventEmitter<{ orderId: string; newStatus: string }>();
-  @Output() collectOrder = new EventEmitter<{ orderId: string; paymentMethod: string }>();
+  @Output() collectOrder = new EventEmitter<{ orderId: string; paymentMethod: string; tipMode: 'NONE' | 'SUGGESTED' | 'CUSTOM'; tipAmount?: number }>();
   @Output() addProducts = new EventEmitter<{ orderId: string; tableNumber: number | null }>();
   @Output() itemPreparedChange = new EventEmitter<{ orderId: string; itemId: string; value: boolean }>();
   @Output() itemDeliveredChange = new EventEmitter<{ orderId: string; itemId: string; value: boolean }>();
@@ -25,6 +27,11 @@ export class OrderCardComponent {
   showCollectOptions = signal(false);
   itemsExpanded = signal(false);
   expandedNotes = signal<Set<number>>(new Set());
+  tipModalVisible = signal(false);
+  pendingCollectMethod = signal<string | null>(null);
+  tipManualOpen = signal(false);
+  tipManualDraft = signal('');
+  collectTipError = signal<string | null>(null);
 
   private readonly MAX_VISIBLE = 4;
 
@@ -64,6 +71,15 @@ export class OrderCardComponent {
   get paymentMethodLabel(): string {
     if (!this.order.paymentMethod) return '';
     return this.order.paymentMethod === 'CASH' ? 'Efectivo' : 'Tarjeta';
+  }
+
+  /** Customer finalized tip in app (including $0); waiter must not prompt again. */
+  get customerResolvedTip(): boolean {
+    return this.order.tipSource === 'CUSTOMER';
+  }
+
+  get hasCustomerTip(): boolean {
+    return this.customerResolvedTip && (this.order.tipAmount ?? 0) > 0;
   }
 
   get statusLabel(): string {
@@ -164,7 +180,71 @@ export class OrderCardComponent {
   }
 
   onCollect(method: string) {
-    this.collectOrder.emit({ orderId: this.order.orderId, paymentMethod: method });
+    if (this.customerResolvedTip) {
+      this.finishCollect(method, 'NONE');
+      return;
+    }
+
+    // Backend only applies waiter tip for dine-in; skip modal for other types.
+    if (this.order.orderType !== 'DINE_IN') {
+      this.finishCollect(method, 'NONE');
+      return;
+    }
+
+    this.pendingCollectMethod.set(method);
+    this.tipManualOpen.set(false);
+    this.tipManualDraft.set('');
+    this.collectTipError.set(null);
+    this.tipModalVisible.set(true);
+  }
+
+  closeTipModal(): void {
+    this.tipModalVisible.set(false);
+    this.pendingCollectMethod.set(null);
+    this.collectTipError.set(null);
+    this.tipManualOpen.set(false);
+  }
+
+  chooseTipNone(): void {
+    const method = this.pendingCollectMethod();
+    if (!method) return;
+    this.finishCollect(method, 'NONE');
+  }
+
+  chooseTipSuggested(): void {
+    const method = this.pendingCollectMethod();
+    if (!method) return;
+    this.finishCollect(method, 'SUGGESTED');
+  }
+
+  toggleTipManual(): void {
+    this.tipManualOpen.update((v) => !v);
+    this.collectTipError.set(null);
+  }
+
+  applyTipManual(): void {
+    const method = this.pendingCollectMethod();
+    if (!method) return;
+    const parsed = Number(this.tipManualDraft().replace(',', '.').trim());
+    if (!Number.isFinite(parsed) || parsed < 0) {
+      this.collectTipError.set('Valor de propina inválido.');
+      return;
+    }
+    this.finishCollect(method, 'CUSTOM', parsed);
+  }
+
+  private finishCollect(
+    method: string,
+    tipMode: 'NONE' | 'SUGGESTED' | 'CUSTOM',
+    tipAmount?: number
+  ): void {
+    this.closeTipModal();
+    this.collectOrder.emit({
+      orderId: this.order.orderId,
+      paymentMethod: method,
+      tipMode,
+      tipAmount
+    });
     this.showCollectOptions.set(false);
   }
 

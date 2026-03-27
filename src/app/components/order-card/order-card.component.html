@@ -1,4 +1,39 @@
-<div class="card" [attr.data-status]="order.status">
+<div class="order-card-host">
+  <div *ngIf="tipModalVisible()" class="tip-modal-overlay" (click)="closeTipModal()">
+    <div class="tip-modal-card" (click)="$event.stopPropagation()">
+      <h3 class="tip-modal-title">¿Desea agregar propina?</h3>
+      <p class="tip-modal-text">
+        Opcional sobre el subtotal (sin impuestos ni domicilio). El cliente ya definió propina si venía en la cuenta.
+      </p>
+      <div class="tip-modal-actions">
+        <button type="button" class="tip-btn tip-btn--ghost" (click)="chooseTipNone()">No, gracias</button>
+        <button type="button" class="tip-btn tip-btn--primary" (click)="chooseTipSuggested()">
+          Sí, sugerida ({{ suggestedTipPercent }}%)
+        </button>
+      </div>
+      <button type="button" class="tip-btn tip-btn--outline w-full" (click)="toggleTipManual()">
+        {{ tipManualOpen() ? 'Ocultar importe manual' : 'Importe manual' }}
+      </button>
+      <div class="tip-manual" *ngIf="tipManualOpen()">
+        <label class="tip-manual__label" [attr.for]="'waiterTip-' + order.orderId">Monto</label>
+        <input
+          [id]="'waiterTip-' + order.orderId"
+          class="tip-manual__input"
+          type="text"
+          inputmode="decimal"
+          autocomplete="off"
+          [value]="tipManualDraft()"
+          (input)="tipManualDraft.set($any($event.target).value)" />
+        <button type="button" class="btn-collect tip-manual__apply" (click)="applyTipManual()">
+          Aplicar y cobrar
+        </button>
+      </div>
+      <p class="tip-modal-error" *ngIf="collectTipError()">{{ collectTipError() }}</p>
+      <button type="button" class="tip-modal-cancel" (click)="closeTipModal()">Cancelar</button>
+    </div>
+  </div>
+
+  <div class="card" [attr.data-status]="order.status">
   <!-- Color accent bar -->
   <div class="card-accent" [attr.data-status]="order.status"></div>
 
@@ -85,6 +120,13 @@
     <span>Domicilio</span>
     <strong>{{ formatMoney(order.deliveryFee ?? 0) }}</strong>
   </div>
+  <div *ngIf="order.tipAmount > 0" class="delivery-fee-row">
+    <span>Propina</span>
+    <strong>{{ formatMoney(order.tipAmount) }}</strong>
+  </div>
+  <div *ngIf="hasCustomerTip" class="hint">
+    Propina agregada por cliente.
+  </div>
   <div class="total">{{ formatMoney(order.total) }}</div>
 
   <div *ngIf="canEditDeliveryFee" class="collect-section">
@@ -141,4 +183,5 @@
   <button *ngIf="order.status === 'PAID'" class="btn-invoice" (click)="viewInvoice()">
     Factura
   </button>
+  </div>
 </div>

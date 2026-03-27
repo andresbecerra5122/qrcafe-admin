@@ -40,6 +40,7 @@
       *ngFor="let o of orders(); trackBy: trackByOrderId"
       [order]="o"
       [mode]="'delivery'"
+      [suggestedTipPercent]="suggestedTipPercent()"
       [paymentMethodOptions]="paymentMethods()"
       (statusChange)="onStatusChange($event)"
       (collectOrder)="onCollect($event)"

@@ -81,6 +81,31 @@
         </div>
       </div>
 
+      <div class="tables-config">
+        <div class="tables-config__summary">
+          Propina sugerida (% sobre subtotal)
+        </div>
+        <div class="tables-config__controls">
+          <input
+            type="number"
+            min="0"
+            max="100"
+            step="0.01"
+            class="create-input tables-config__input"
+            [ngModel]="suggestedTipPercentDraft()"
+            [disabled]="settingsSaving()"
+            (ngModelChange)="onSuggestedTipPercentInput($event)" />
+          <span class="hint">%</span>
+          <button
+            type="button"
+            class="btn-create"
+            [disabled]="settingsSaving() || suggestedTipPercentDraft() == null || suggestedTipPercentDraft() === suggestedTipPercent()"
+            (click)="saveSuggestedTipPercent()">
+            {{ settingsSaving() ? 'Guardando...' : 'Guardar propina' }}
+          </button>
+        </div>
+      </div>
+
       <label class="setting-item">
         <input
           type="checkbox"

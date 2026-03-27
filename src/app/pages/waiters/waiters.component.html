@@ -2,7 +2,9 @@
   <!-- Top bar -->
   <header class="topbar">
     <div class="topbar-inner">
-      <h1 class="logo">{{ restaurantName() || 'QrCafe' }} <span class="logo-accent">Meseros</span></h1>
+      <div class="topbar-brand">
+        <h1 class="logo">{{ restaurantName() || 'QrCafe' }} <span class="logo-accent">Meseros</span></h1>
+      </div>
       <div class="topbar-right">
         <a class="btn-new-order"
            [routerLink]="['/new-order']"
@@ -83,6 +85,7 @@
       *ngFor="let o of orders(); trackBy: trackByOrderId"
       [order]="o"
       [mode]="'waiter'"
+      [suggestedTipPercent]="suggestedTipPercent()"
       [paymentMethodOptions]="paymentMethods()"
       (statusChange)="onStatusChange($event)"
       (collectOrder)="onCollect($event)"

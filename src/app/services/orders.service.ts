@@ -51,10 +51,10 @@ export class OrdersService {
     );
   }
 
-  collectOrder(orderId: string, paymentMethod: string): Observable<void> {
+  collectOrder(orderId: string, paymentMethod: string, tipMode?: 'NONE' | 'SUGGESTED' | 'CUSTOM', tipAmount?: number): Observable<void> {
     return this.http.patch<void>(
       `${this.baseUrl}/ops/orders/${orderId}/collect`,
-      { paymentMethod }
+      { paymentMethod, tipMode: tipMode ?? 'NONE', tipAmount: tipAmount ?? null }
     );
   }
 

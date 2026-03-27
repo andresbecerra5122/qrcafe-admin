@@ -14,6 +14,7 @@ export interface RestaurantInfo {
   enablePayAtCashier: boolean;
   enableKitchenBarSplit: boolean;
   avgPreparationMinutes: number;
+  suggestedTipPercent: number;
   paymentMethods: PaymentMethodOption[];
 }
 
@@ -50,6 +51,7 @@ export class RestaurantService {
       enablePayAtCashier?: boolean;
       enableKitchenBarSplit?: boolean;
       avgPreparationMinutes?: number;
+      suggestedTipPercent?: number;
     }
   ): Observable<RestaurantInfo> {
     return this.http

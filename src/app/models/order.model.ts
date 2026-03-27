@@ -24,6 +24,8 @@ export interface OpsOrder {
   paymentRequestedAt: string | null;
   currency: string;
   deliveryFee: number;
+  tipAmount: number;
+  tipSource: string | null;
   total: number;
   createdAt: string;
   items: OpsOrderItem[];

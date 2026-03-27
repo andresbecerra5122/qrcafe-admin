@@ -1,14 +1,14 @@
 .reports-page {
-  @apply max-w-4xl mx-auto px-4 sm:px-6 py-6 space-y-6;
+  @apply max-w-4xl mx-auto px-4 sm:px-6 py-6 space-y-6 min-w-0;
 }
 
 .topbar {
   @apply bg-white rounded-2xl px-6 py-4 shadow-sm border border-orange-100/80
-    flex items-center justify-between flex-wrap gap-3;
+    flex items-center justify-between flex-wrap gap-3 min-w-0;
 }
 
 .topbar-left {
-  @apply flex items-center gap-3;
+  @apply flex items-center gap-3 min-w-0;
 }
 
 .logo {
@@ -110,7 +110,8 @@
 }
 
 .orders-table-wrap {
-  @apply overflow-x-auto;
+  @apply overflow-x-auto min-w-0;
+  -webkit-overflow-scrolling: touch;
 }
 
 .orders-table {

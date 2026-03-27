@@ -33,6 +33,7 @@ export class WaitersComponent implements OnInit, OnDestroy {
   activeFilter = signal<string>('ACTIVE');
   waiterAlert = signal<string | null>(null);
   paymentMethods = signal<PaymentMethodOption[]>([]);
+  suggestedTipPercent = signal(10);
   private readonly orderTypeFilter = 'DINE_IN,TAKEAWAY';
 
   filters: FilterTab[] = [
@@ -74,6 +75,7 @@ export class WaitersComponent implements OnInit, OnDestroy {
       next: (info) => {
         this.restaurantName.set(info.name);
         this.paymentMethods.set(info.paymentMethods ?? []);
+        this.suggestedTipPercent.set(info.suggestedTipPercent ?? 10);
       }
     });
 
@@ -135,8 +137,8 @@ export class WaitersComponent implements OnInit, OnDestroy {
     });
   }
 
-  onCollect(event: { orderId: string; paymentMethod: string }) {
-    this.ordersService.collectOrder(event.orderId, event.paymentMethod).subscribe({
+  onCollect(event: { orderId: string; paymentMethod: string; tipMode: 'NONE' | 'SUGGESTED' | 'CUSTOM'; tipAmount?: number }) {
+    this.ordersService.collectOrder(event.orderId, event.paymentMethod, event.tipMode, event.tipAmount).subscribe({
       next: () => this.fetchOrders(),
       error: (err) => console.error('Failed to collect order', err)
     });
