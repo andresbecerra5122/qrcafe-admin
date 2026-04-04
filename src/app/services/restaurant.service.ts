@@ -13,6 +13,7 @@ export interface RestaurantInfo {
   enableDeliveryCard: boolean;
   enablePayAtCashier: boolean;
   enableKitchenBarSplit: boolean;
+  enableTableReassignment: boolean;
   avgPreparationMinutes: number;
   suggestedTipPercent: number;
   paymentMethods: PaymentMethodOption[];
@@ -50,6 +51,7 @@ export class RestaurantService {
       enableDeliveryCard?: boolean;
       enablePayAtCashier?: boolean;
       enableKitchenBarSplit?: boolean;
+      enableTableReassignment?: boolean;
       avgPreparationMinutes?: number;
       suggestedTipPercent?: number;
     }

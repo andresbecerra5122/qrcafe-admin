@@ -33,6 +33,46 @@
     </div>
   </div>
 
+  <div *ngIf="tableMoveModalVisible()" class="tip-modal-overlay" (click)="closeTableMoveModal()">
+    <div class="tip-modal-card" (click)="$event.stopPropagation()">
+      <h3 class="tip-modal-title">Mover cuenta a otra mesa</h3>
+      <p class="tip-modal-text">
+        La comanda quedará asociada a la mesa elegida. El cliente debe abrir el menú con el QR de esa mesa para ver el mismo pedido.
+      </p>
+      <p class="tip-modal-text" *ngIf="tableMoveLoading() && tableMoveOptions().length === 0">Cargando mesas...</p>
+      <div *ngIf="tableMoveOptions().length > 0" class="table-move-field">
+        <label class="tip-manual__label" for="moveTableSelect">Mesa destino</label>
+        <select
+          id="moveTableSelect"
+          class="tip-manual__input table-move-select"
+          [value]="tableMoveTarget() ?? ''"
+          (change)="onTableMoveSelect($event)"
+          [disabled]="tableMoveLoading()">
+          <option value="">Elegir mesa…</option>
+          <option
+            *ngFor="let t of tableMoveOptions()"
+            [value]="t.number"
+            [disabled]="t.number === order.tableNumber">
+            Mesa {{ t.number }}{{ t.number === order.tableNumber ? ' (actual)' : '' }}
+          </option>
+        </select>
+      </div>
+      <p class="tip-modal-error" *ngIf="tableMoveError()">{{ tableMoveError() }}</p>
+      <div class="tip-modal-actions">
+        <button type="button" class="tip-btn tip-btn--ghost" [disabled]="tableMoveLoading()" (click)="closeTableMoveModal()">
+          Cancelar
+        </button>
+        <button
+          type="button"
+          class="tip-btn tip-btn--primary"
+          [disabled]="tableMoveLoading() || tableMoveTarget() == null"
+          (click)="confirmTableMove()">
+          {{ tableMoveLoading() ? 'Guardando…' : 'Confirmar' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
   <div class="card" [attr.data-status]="order.status">
   <!-- Color accent bar -->
   <div class="card-accent" [attr.data-status]="order.status"></div>
@@ -149,6 +189,12 @@
   </div>
 
   <!-- Collect (waiter quick-pay for DELIVERED) -->
+  <div *ngIf="showTableMoveBtn" class="collect-section">
+    <button type="button" class="btn-collect btn-table-move" [disabled]="tableMoveLoading()" (click)="openTableMoveModal()">
+      Cambiar mesa
+    </button>
+  </div>
+
   <div *ngIf="showCollectBtn" class="collect-section">
     <button *ngIf="!showCollectOptions()" class="btn-collect" (click)="toggleCollectOptions()">
       Cobrar

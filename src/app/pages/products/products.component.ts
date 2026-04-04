@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { CreateProductRequest, ProductsService } from '../../services/products.service';
-import { PaymentMethodOption, RestaurantService } from '../../services/restaurant.service';
+import { PaymentMethodOption, RestaurantInfo, RestaurantService } from '../../services/restaurant.service';
 import { TablesService } from '../../services/tables.service';
 import { AuthService } from '../../services/auth.service';
 import { OpsProduct } from '../../models/product.model';
@@ -41,6 +41,7 @@ export class ProductsComponent implements OnInit {
   enableDeliveryCard = signal(true);
   enablePayAtCashier = signal(false);
   enableKitchenBarSplit = signal(false);
+  enableTableReassignment = signal(false);
   avgPreparationMinutes = signal(15);
   avgPreparationMinutesDraft = signal<number | null>(15);
   suggestedTipPercent = signal(10);
@@ -575,6 +576,18 @@ export class ProductsComponent implements OnInit {
     });
   }
 
+  onToggleTableReassignment(nextValue: boolean): void {
+    if (!this.canManageSettings() || this.settingsSaving()) return;
+    this.settingsSaving.set(true);
+    this.restaurantService.updateSettings(this.restaurantId, { enableTableReassignment: nextValue }).subscribe({
+      next: (info) => {
+        this.applyRestaurantInfo(info);
+        this.settingsSaving.set(false);
+      },
+      error: () => this.settingsSaving.set(false)
+    });
+  }
+
   canAddPaymentMethod(): boolean {
     return this.canManageSettings()
       && this.paymentMethodDraft.trim().length > 0
@@ -632,23 +645,14 @@ export class ProductsComponent implements OnInit {
     });
   }
 
-  private applyRestaurantInfo(info: {
-    enableDineIn: boolean;
-    enableDelivery: boolean;
-    enableDeliveryCash: boolean;
-    enableDeliveryCard: boolean;
-    enablePayAtCashier: boolean;
-    enableKitchenBarSplit: boolean;
-    avgPreparationMinutes: number;
-    suggestedTipPercent: number;
-    paymentMethods?: PaymentMethodOption[];
-  }): void {
+  private applyRestaurantInfo(info: RestaurantInfo): void {
     this.enableDineIn.set(info.enableDineIn);
     this.enableDelivery.set(info.enableDelivery);
     this.enableDeliveryCash.set(info.enableDeliveryCash);
     this.enableDeliveryCard.set(info.enableDeliveryCard);
     this.enablePayAtCashier.set(info.enablePayAtCashier);
     this.enableKitchenBarSplit.set(info.enableKitchenBarSplit);
+    this.enableTableReassignment.set(info.enableTableReassignment ?? false);
     this.avgPreparationMinutes.set(info.avgPreparationMinutes ?? 15);
     this.avgPreparationMinutesDraft.set(info.avgPreparationMinutes ?? 15);
     this.suggestedTipPercent.set(info.suggestedTipPercent ?? 10);

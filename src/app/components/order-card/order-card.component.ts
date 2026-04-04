@@ -2,6 +2,7 @@ import { Component, Input, Output, EventEmitter, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { OpsOrder, OpsOrderItem, PrepStation } from '../../models/order.model';
 import { PaymentMethodOption } from '../../services/restaurant.service';
+import { OrdersService } from '../../services/orders.service';
 
 @Component({
   selector: 'app-order-card',
@@ -17,12 +18,16 @@ export class OrderCardComponent {
   @Input() paymentMethodOptions: PaymentMethodOption[] = [];
   /** Configured restaurant suggested tip % (dine-in collect modal). */
   @Input() suggestedTipPercent = 10;
+  @Input() restaurantId = '';
+  /** Product admin: allow waiter to move dine-in order to another table. */
+  @Input() enableTableReassignment = false;
   @Output() statusChange = new EventEmitter<{ orderId: string; newStatus: string }>();
   @Output() collectOrder = new EventEmitter<{ orderId: string; paymentMethod: string; tipMode: 'NONE' | 'SUGGESTED' | 'CUSTOM'; tipAmount?: number }>();
   @Output() addProducts = new EventEmitter<{ orderId: string; tableNumber: number | null }>();
   @Output() itemPreparedChange = new EventEmitter<{ orderId: string; itemId: string; value: boolean }>();
   @Output() itemDeliveredChange = new EventEmitter<{ orderId: string; itemId: string; value: boolean }>();
   @Output() deliveryFeeChange = new EventEmitter<{ orderId: string; deliveryFee: number }>();
+  @Output() tableReassigned = new EventEmitter<void>();
 
   showCollectOptions = signal(false);
   itemsExpanded = signal(false);
@@ -32,8 +37,15 @@ export class OrderCardComponent {
   tipManualOpen = signal(false);
   tipManualDraft = signal('');
   collectTipError = signal<string | null>(null);
+  tableMoveModalVisible = signal(false);
+  tableMoveOptions = signal<{ number: number; token: string }[]>([]);
+  tableMoveTarget = signal<number | null>(null);
+  tableMoveLoading = signal(false);
+  tableMoveError = signal<string | null>(null);
 
   private readonly MAX_VISIBLE = 4;
+
+  constructor(private readonly ordersService: OrdersService) {}
 
   get timeAgo(): string {
     const now = Date.now();
@@ -122,6 +134,12 @@ export class OrderCardComponent {
       return ['CREATED', 'READY', 'OUT_FOR_DELIVERY', 'DELIVERED', 'PAYMENT_PENDING'].includes(this.order.status);
     }
     return false;
+  }
+
+  get showTableMoveBtn(): boolean {
+    if (!this.enableTableReassignment || this.mode !== 'waiter') return false;
+    if (this.order.orderType !== 'DINE_IN' || this.order.tableNumber == null) return false;
+    return !['PAID', 'CANCELLED'].includes(this.order.status);
   }
 
   get showCollectBtn(): boolean {
@@ -356,6 +374,56 @@ export class OrderCardComponent {
     const currency = this.order.currency ?? 'COP';
     const locale = currency === 'EUR' ? 'es-ES' : 'es-CO';
     return new Intl.NumberFormat(locale, { style: 'currency', currency }).format(value);
+  }
+
+  openTableMoveModal(): void {
+    if (!this.restaurantId || !this.showTableMoveBtn) return;
+    this.tableMoveLoading.set(true);
+    this.tableMoveError.set(null);
+    this.ordersService.getWaiterTables(this.restaurantId).subscribe({
+      next: (list) => {
+        this.tableMoveOptions.set(list);
+        this.tableMoveTarget.set(null);
+        this.tableMoveLoading.set(false);
+        this.tableMoveModalVisible.set(true);
+      },
+      error: () => {
+        this.tableMoveLoading.set(false);
+        this.tableMoveError.set('No se pudieron cargar las mesas.');
+        this.tableMoveModalVisible.set(true);
+      }
+    });
+  }
+
+  closeTableMoveModal(): void {
+    this.tableMoveModalVisible.set(false);
+    this.tableMoveError.set(null);
+  }
+
+  onTableMoveSelect(event: Event): void {
+    const v = (event.target as HTMLSelectElement).value;
+    this.tableMoveTarget.set(v === '' ? null : Number(v));
+  }
+
+  confirmTableMove(): void {
+    const n = this.tableMoveTarget();
+    if (n == null || !this.restaurantId) return;
+    this.tableMoveLoading.set(true);
+    this.tableMoveError.set(null);
+    this.ordersService.reassignOrderTable(this.order.orderId, n).subscribe({
+      next: () => {
+        this.tableMoveLoading.set(false);
+        this.tableMoveModalVisible.set(false);
+        this.tableReassigned.emit();
+      },
+      error: (err) => {
+        this.tableMoveLoading.set(false);
+        const raw = err?.error?.error;
+        this.tableMoveError.set(
+          typeof raw === 'string' ? raw : 'No se pudo mover la cuenta. Verifica que la mesa destino esté libre.'
+        );
+      }
+    });
   }
 
   viewInvoice() {

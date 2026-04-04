@@ -85,12 +85,15 @@
       *ngFor="let o of orders(); trackBy: trackByOrderId"
       [order]="o"
       [mode]="'waiter'"
+      [restaurantId]="restaurantId"
+      [enableTableReassignment]="enableTableReassignment()"
       [suggestedTipPercent]="suggestedTipPercent()"
       [paymentMethodOptions]="paymentMethods()"
       (statusChange)="onStatusChange($event)"
       (collectOrder)="onCollect($event)"
       (itemDeliveredChange)="onItemDeliveredChange($event)"
-      (addProducts)="onAddProducts($event)">
+      (addProducts)="onAddProducts($event)"
+      (tableReassigned)="fetchOrders()">
     </app-order-card>
   </div>
 </div>

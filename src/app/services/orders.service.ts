@@ -71,4 +71,14 @@ export class OrdersService {
       { value }
     );
   }
+
+  getWaiterTables(restaurantId: string): Observable<{ number: number; token: string }[]> {
+    return this.http.get<{ number: number; token: string }[]>(
+      `${this.baseUrl}/ops/waiter-tables?restaurantId=${restaurantId}`
+    );
+  }
+
+  reassignOrderTable(orderId: string, tableNumber: number): Observable<void> {
+    return this.http.patch<void>(`${this.baseUrl}/ops/orders/${orderId}/table`, { tableNumber });
+  }
 }

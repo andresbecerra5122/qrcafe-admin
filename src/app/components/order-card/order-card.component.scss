@@ -72,6 +72,18 @@
     bg-transparent border-0 cursor-pointer py-2;
 }
 
+.table-move-field {
+  @apply space-y-1;
+}
+
+.table-move-select {
+  @apply cursor-pointer;
+}
+
+.btn-table-move {
+  @apply bg-amber-600 hover:bg-amber-700;
+}
+
 /* Color accent bar at top */
 .card-accent {
   @apply absolute top-0 left-0 right-0 h-1 rounded-t-2xl;

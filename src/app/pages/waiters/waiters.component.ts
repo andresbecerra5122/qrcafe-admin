@@ -34,6 +34,7 @@ export class WaitersComponent implements OnInit, OnDestroy {
   waiterAlert = signal<string | null>(null);
   paymentMethods = signal<PaymentMethodOption[]>([]);
   suggestedTipPercent = signal(10);
+  enableTableReassignment = signal(false);
   private readonly orderTypeFilter = 'DINE_IN,TAKEAWAY';
 
   filters: FilterTab[] = [
@@ -76,6 +77,7 @@ export class WaitersComponent implements OnInit, OnDestroy {
         this.restaurantName.set(info.name);
         this.paymentMethods.set(info.paymentMethods ?? []);
         this.suggestedTipPercent.set(info.suggestedTipPercent ?? 10);
+        this.enableTableReassignment.set(info.enableTableReassignment ?? false);
       }
     });
 

@@ -33,6 +33,18 @@
         <span>Pago en caja (no en mesa)</span>
       </label>
 
+      <label class="setting-item setting-item--sub">
+        <input
+          type="checkbox"
+          [checked]="enableTableReassignment()"
+          [disabled]="settingsSaving() || !enableDineIn()"
+          (change)="onToggleTableReassignment($any($event.target).checked)" />
+        <span>Cambiar de mesa (mesero mueve la cuenta a otra mesa)</span>
+      </label>
+      <p class="settings-help setting-item--sub">
+        Si está activo, en el dashboard de meseros pueden reasignar una cuenta abierta a otra mesa. El cliente debe usar el QR de la nueva mesa para ver el mismo pedido.
+      </p>
+
       <div class="tables-config">
         <div class="tables-config__summary">
           Mesas activas: <strong>{{ activeTablesCount() }}</strong>
